@@ -1,0 +1,6 @@
+name: Hubspot Commerce
+description: Integrates Drupal Commerce with Hubspot.
+type: module
+package: Hubspot
+core: '8.x'
+project: 'hubspot_commerce'
