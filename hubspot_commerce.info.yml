@@ -3,4 +3,6 @@ description: Integrates Drupal Commerce with Hubspot.
 type: module
 package: Hubspot
 core: '8.x'
-project: 'hubspot_commerce'
+project: 'hubspot_api'
+dependencies:
+  - hubspot_api
