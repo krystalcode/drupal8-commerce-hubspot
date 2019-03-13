@@ -1,6 +1,6 @@
 services:
-  hubspot_commerce.service:
-    class: Drupal\hubspot_commerce\Services\HubspotCommerce
+  commerce_hubspot.sync_to.service:
+    class: Drupal\commerce_hubspot\Hubspot\SyncToService
     arguments:
       - '@hubspot_api.manager'
       - '@entity_type.manager'

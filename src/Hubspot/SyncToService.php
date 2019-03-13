@@ -1,29 +1,21 @@
 <?php
 
-namespace Drupal\hubspot_commerce\Services;
+namespace Drupal\commerce_hubspot\Hubspot;
 
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\hubspot_api\Manager;
 
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Logger\LoggerChannelFactoryInterface;
-use Exception;
 
 /**
- * The HubspotCommerce service class.
+ * The SyncToService class.
  *
- * Contains functions to sync data with the Hubspot API.
+ * Contains functions for synchronizing data to the HubSpot API.
  *
- * @package Drupal\hubspot_commerce
+ * @package Drupal\commerce_hubspot
  */
-class HubspotCommerce {
-
-  /**
-   * The Hubspot API Manager.
-   *
-   * @var \Drupal\hubspot_api\Manager
-   */
-  protected $hubspotManager;
+class SyncToService implements SyncToServiceInterface {
 
   /**
    * The entity type manager.
@@ -63,19 +55,11 @@ class HubspotCommerce {
     EntityTypeManagerInterface $entity_type_manager,
     LoggerChannelFactoryInterface $logger_factory
   ) {
-    $this->hubspotManager = $hubspot_manager;
     $this->entityTypeManager = $entity_type_manager;
-    $this->logger = $logger_factory->get(HUBSPOT_COMMERCE_LOGGER_CHANNEL);
+    $this->logger = $logger_factory->get(COMMERCE_HUBSPOT_LOGGER_CHANNEL);
 
     // Initialize our Hubspot API client.
-    try {
-      $this->client = $this->hubspotManager->getHandler()->client;
-    }
-    catch (Exception $e) {
-      $this->logger->error('Could not create a Hubspot API client. Error: @error', [
-        '@error' => $e->getMessage(),
-      ]);
-    }
+    $this->client = $hubspot_manager->getHandler()->client;
   }
 
   /**
@@ -84,7 +68,7 @@ class HubspotCommerce {
    * @param \Drupal\Core\Entity\EntityInterface $entity
    *   The entity we're syncing (ie. user/order/product variation).
    */
-  public function syncQueueItem(EntityInterface $entity) {
+  public function sync(EntityInterface $entity) {
     // TODO: Depending on which entity we're trying to sync, trigger the
     // appropriate action.
   }
