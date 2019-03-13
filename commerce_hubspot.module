@@ -1,0 +1,59 @@
+<?php
+
+/**
+ * @file
+ * Hooks and functionality for the Commerce HubSpot module.
+ */
+
+use Drupal\commerce_hubspot\Event\SyncEntityTypesEvent;
+use Drupal\Core\Routing\RouteMatchInterface;
+use Drupal\Core\Entity\EntityInterface;
+
+const COMMERCE_HUBSPOT_LOGGER_CHANNEL = 'commerce_hubspot';
+
+/**
+ * Implements hook_help().
+ */
+function commerce_hubspot_help($route_name, RouteMatchInterface $route_match) {
+  switch ($route_name) {
+    case 'help.page.hubspot_commerce':
+      $output = '';
+      $output .= '<h3>' . t('About') . '</h3>';
+      $output .= '<p>' . t(
+          'The Commerce Hubspot module integrates Drupal
+        Commerce with Hubspot. It syncs data with the <a target="_blank" href=":hubspot_api">Hubspot API</a>
+        any time a user, order, or product is created or updated.', [
+          ':hubspot_api' => 'https://www.hubspot.com',
+        ]
+      ) . '</p>';
+
+      return $output;
+  }
+}
+
+/**
+ * Implements hook_entity_update().
+ */
+function commerce_hubspot_entity_update(EntityInterface $entity) {
+  // TODO: Make this configurable.
+  $entities_to_sync = [
+    'order',
+    'order_item',
+    'product_variation',
+    'profile',
+    'user'
+  ];
+
+  // Dispatch our sync entity types event.
+  $event = new SyncEntityTypesEvent($entities_to_sync);
+  $event_dispatcher = \Drupal::service('event_dispatcher');
+  $event_dispatcher->dispatch(SyncEntityTypesEvent::EVENT_NAME, $event);
+
+  if (!in_array($entity->getEntityType()->id(), $entities_to_sync)) {
+    return;
+  }
+
+  $queue_factory = \Drupal::service('queue');
+  $queue = $queue_factory->get('commerce_hubspot_entity_sync_to');
+  $queue->createItem($entity);
+}
