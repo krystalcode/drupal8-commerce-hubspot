@@ -1,7 +1,0 @@
-services:
-  hubspot_commerce.service:
-    class: Drupal\hubspot_commerce\Services\HubspotCommerce
-    arguments:
-      - '@hubspot_api.manager'
-      - '@entity_type.manager'
-      - '@logger.factory'
