@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\hubspot_commerce\Plugin\QueueWorker;
+namespace Drupal\commerce_hubspot\Plugin\QueueWorker;
 
 use Drupal\commerce_hubspot\Hubspot\SyncToServiceInterface;
 
