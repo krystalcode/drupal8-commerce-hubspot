@@ -14,6 +14,7 @@ use SevenShores\Hubspot\Resources\Contacts;
 use SevenShores\Hubspot\Resources\Deals;
 use SevenShores\Hubspot\Resources\Products;
 use SevenShores\Hubspot\Resources\LineItems;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 /**
  * The SyncToService class.
@@ -53,6 +54,13 @@ class SyncToService implements SyncToServiceInterface {
   protected $entity;
 
   /**
+   * An event dispatcher instance.
+   *
+   * @var \Symfony\Component\EventDispatcher\EventDispatcherInterface
+   */
+  protected $eventDispatcher;
+
+  /**
    * Constructs a new HubSpot Commerce service instance.
    *
    * @param \Drupal\hubspot_api\Manager $hubspot_manager
@@ -61,16 +69,20 @@ class SyncToService implements SyncToServiceInterface {
    *   The entity type manger.
    * @param \Drupal\Core\Logger\LoggerChannelFactoryInterface $logger_factory
    *   The logger factory.
+   * @param \Symfony\Component\EventDispatcher\EventDispatcherInterface $event_dispatcher
+   *   The event dispatcher.
    *
    * @throws \Exception
    */
   public function __construct(
     Manager $hubspot_manager,
     EntityTypeManagerInterface $entity_type_manager,
-    LoggerChannelFactoryInterface $logger_factory
+    LoggerChannelFactoryInterface $logger_factory,
+    EventDispatcherInterface $event_dispatcher
   ) {
     $this->entityTypeManager = $entity_type_manager;
     $this->logger = $logger_factory->get(COMMERCE_HUBSPOT_LOGGER_CHANNEL);
+    $this->eventDispatcher = $event_dispatcher;
 
     // Initialize our Hubspot API client.
     $this->client = $hubspot_manager->getHandler()->client;
@@ -85,13 +97,11 @@ class SyncToService implements SyncToServiceInterface {
   public function sync(EntityInterface $entity) {
     $this->entity = $entity;
 
-    // Dispatch an event to allow modules to define which Hubspot entity and ID
+    // Dispatch an event to allow modules to tell us which Hubspot entity and ID
     // to sync this Drupal entity with.
-    $event_dispatcher = \Drupal::service('event_dispatcher');
-
     $entity_mapping = [];
     $event = new EntityMappingEvent($entity_mapping);
-    $event_dispatcher->dispatch(EntityMappingEvent::EVENT_NAME, $event);
+    $this->eventDispatcher->dispatch(EntityMappingEvent::EVENT_NAME, $event);
 
     if (empty($entity_mapping['type'])) {
       return;
@@ -101,7 +111,7 @@ class SyncToService implements SyncToServiceInterface {
     // fields will be synced to which HubSpot fields for this entity.
     $field_mapping = [];
     $event = new FieldMappingEvent($field_mapping);
-    $event_dispatcher->dispatch(FieldMappingEvent::EVENT_NAME, $event);
+    $this->eventDispatcher->dispatch(FieldMappingEvent::EVENT_NAME, $event);
 
     if (empty($field_mapping)) {
       return;
