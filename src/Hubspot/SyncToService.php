@@ -2,6 +2,7 @@
 
 namespace Drupal\commerce_hubspot\Hubspot;
 
+use Drupal\commerce_hubspot\Event\EntityMappingEvent;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\hubspot_api\Manager;
 
@@ -69,8 +70,16 @@ class SyncToService implements SyncToServiceInterface {
    *   The entity we're syncing (ie. user/order/product variation).
    */
   public function sync(EntityInterface $entity) {
-    // TODO: Depending on which entity we're trying to sync, trigger the
-    // appropriate action.
+    // Dispatch an event to allow modules to tell us which Hubspot entity and ID
+    // to sync this Drupal entity with.
+    $entity_mapping = [];
+    $event = new EntityMappingEvent($entity_mapping);
+    $event_dispatcher = \Drupal::service('event_dispatcher');
+    $event_dispatcher->dispatch(EntityMappingEvent::EVENT_NAME, $event);
+
+    if (!isset($entity_mapping['type']) && !isset($entity_mapping['id'])) {
+      return;
+    }
   }
 
   /**
