@@ -7,6 +7,8 @@ use Symfony\Component\EventDispatcher\Event;
 /**
  * Event that gets dispatched when an entity is updated.
  *
+ * Allows modules to define which Drupal entities should be synced to Hubspot.
+ *
  * @package Drupal\commerce_hubspot\Event
  */
 class SyncEntityTypesEvent extends Event {
