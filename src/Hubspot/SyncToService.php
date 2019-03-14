@@ -9,6 +9,10 @@ use Drupal\hubspot_api\Manager;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Logger\LoggerChannelFactoryInterface;
+use SevenShores\Hubspot\Resources\Contacts;
+use SevenShores\Hubspot\Resources\Deals;
+use SevenShores\Hubspot\Resources\Products;
+use SevenShores\Hubspot\Resources\LineItems;
 
 /**
  * The SyncToService class.
@@ -38,7 +42,14 @@ class SyncToService implements SyncToServiceInterface {
    *
    * @var \SevenShores\Hubspot\Http\Client
    */
-  public $client;
+  protected $client;
+
+  /**
+   * The entity that will be synced.
+   *
+   * @var \Drupal\core\Entity\EntityInterface
+   */
+  protected $entity;
 
   /**
    * Constructs a new HubSpot Commerce service instance.
@@ -71,6 +82,8 @@ class SyncToService implements SyncToServiceInterface {
    *   The entity we're syncing (ie. user/order/product variation).
    */
   public function sync(EntityInterface $entity) {
+    $this->entity = $entity;
+
     // Dispatch an event to allow modules to define which Hubspot entity and ID
     // to sync this Drupal entity with.
     $event_dispatcher = \Drupal::service('event_dispatcher');
@@ -79,7 +92,7 @@ class SyncToService implements SyncToServiceInterface {
     $event = new EntityMappingEvent($entity_mapping);
     $event_dispatcher->dispatch(EntityMappingEvent::EVENT_NAME, $event);
 
-    if (!isset($entity_mapping['type']) && !isset($entity_mapping['id'])) {
+    if (empty($entity_mapping['type'])) {
       return;
     }
 
@@ -92,54 +105,155 @@ class SyncToService implements SyncToServiceInterface {
     if (empty($field_mapping)) {
       return;
     }
+
+    // Prepare the paylaod to send to Hubspot.
+    $hubspot_field_properties = $this->preparePayload($field_mapping);
+    if (empty($hubspot_field_properties)) {
+      return;
+    }
+
+    // Now, do the actual syncing depending on the entity type.
+    $function_name = 'sync' . $entity_mapping['type'];
+    $this->$function_name($hubspot_field_properties, $entity_mapping['id']);
+  }
+
+  /**
+   * Prepare the payload for syncing the properties.
+   *
+   * @param array $field_mapping
+   *   The array of fields that should be mapped.
+   *
+   * @return mixed
+   *   An array of Hubspot properties with their values.
+   */
+  protected function preparePayload(array $field_mapping) {
+    $hubspot_field_properties = [];
+    foreach ($field_mapping as $drupal_field_name => $hubspot_field) {
+      if (!$hubspot_field['status']) {
+        return;
+      }
+
+      $hubspot_field_properties[] = [
+        'property' => $hubspot_field['id'],
+        'value' => $hubspot_field['value'],
+      ];
+    }
+
+    return $hubspot_field_properties;
   }
 
   /**
    * Syncs the contact details with Hubspot.
    *
-   * @param \Drupal\Core\Entity\EntityInterface $entity
-   *   The user entity.
+   * @param array $hubspot_field_properties
+   *   An array of Hubspot properties with their values.
+   * @param int $hubspot_entity_id
+   *   The Hubspot contact ID if the contact has already been synced to Hubspot.
+   *
+   * @throws \Exception
    */
-  protected function syncContact(EntityInterface $entity) {
-    // TODO: Create the necessary properties from the entity object.
+  protected function syncContact(array $hubspot_field_properties, $hubspot_entity_id = NULL) {
+    $contacts = new Contacts($this->client);
 
-    // TODO: Check if a contact already exists in Hubspot, if so, we update.
+    // Create the contact if it hasn't been synced yet.
+    if (!$hubspot_entity_id) {
+      $response = $contacts->create($hubspot_field_properties);
+
+      // If we were successful, save the Hubspot contact ID in the entity.
+      if ($response->getStatusCode() == 200) {
+        $body = $response->getBody();
+
+        $this->entity->set('hubspot_contact_id', $body['vid'])->save();
+      }
+    }
+    else {
+      $contacts->update($hubspot_entity_id, $hubspot_field_properties);
+    }
   }
 
   /**
    * Syncs the order details with Hubspot.
    *
-   * @param \Drupal\Core\Entity\EntityInterface $entity
-   *   The user entity.
+   * @param array $hubspot_field_properties
+   *   An array of Hubspot properties with their values.
+   * @param int $hubspot_entity_id
+   *   The Hubspot deal ID if the deal has already been synced to Hubspot.
+   *
+   * @throws \Exception
    */
-  protected function syncDeal(EntityInterface $entity) {
-    // TODO: Create the necessary properties from the entity object.
+  protected function syncDeal(array $hubspot_field_properties, $hubspot_entity_id = NULL) {
+    $deals = new Deals($this->client);
 
-    // TODO: Check if a deal already exists in Hubspot, if so, we update.
+    // Create the deal if it hasn't been synced yet.
+    if (!$hubspot_entity_id) {
+      $response = $deals->create($hubspot_field_properties);
+
+      // If we were successful, save the Hubspot deal ID in the entity.
+      if ($response->getStatusCode() == 200) {
+        $body = $response->getBody();
+
+        $this->entity->set('hubspot_deal_id', $body['dealId'])->save();
+      }
+    }
+    else {
+      $deals->update($hubspot_entity_id, $hubspot_field_properties);
+    }
   }
 
   /**
    * Syncs the product variation details with Hubspot.
    *
-   * @param \Drupal\Core\Entity\EntityInterface $entity
-   *   The user entity.
+   * @param array $hubspot_field_properties
+   *   An array of Hubspot properties with their values.
+   * @param int $hubspot_entity_id
+   *   The Hubspot deal ID if the deal has already been synced to Hubspot.
    */
-  protected function syncProduct(EntityInterface $entity) {
-    // TODO: Create the necessary properties from the entity object.
+  protected function syncProduct(array $hubspot_field_properties, $hubspot_entity_id = NULL) {
+    // TODO: Create the API on the SDK first.
+    $products = new Products($this->client);
 
-    // TODO: Check if a product already exists in Hubspot, if so, we update.
+    // Create the product if it hasn't been synced yet.
+    if (!$hubspot_entity_id) {
+      $response = $products->create($hubspot_field_properties);
+
+      // If we were successful, save the Hubspot product ID in the entity.
+      if ($response->getStatusCode() == 200) {
+        $body = $response->getBody();
+
+        $this->entity->set('hubspot_product_id', $body['objectId'])->save();
+      }
+    }
+    else {
+      $products->update($hubspot_entity_id, $hubspot_field_properties);
+    }
   }
 
   /**
    * Syncs the line item details with Hubspot.
    *
-   * @param \Drupal\Core\Entity\EntityInterface $entity
-   *   The user entity.
+   * @param array $hubspot_field_properties
+   *   An array of Hubspot properties with their values.
+   * @param int $hubspot_entity_id
+   *   The Hubspot deal ID if the deal has already been synced to Hubspot.
    */
-  protected function syncLineItem(EntityInterface $entity) {
-    // TODO: Create the necessary properties from the entity object.
+  protected function syncLineItem(array $hubspot_field_properties, $hubspot_entity_id = NULL) {
+    // TODO: Create the API on the SDK first.
+    $line_items = new LineItems($this->client);
 
-    // TODO: Check if a line item already exists in Hubspot, if so, we update.
+    // Create the line item if it hasn't been synced yet.
+    if (!$hubspot_entity_id) {
+      $response = $line_items->create($hubspot_field_properties);
+
+      // If we were successful, save the Hubspot line item ID in the entity.
+      if ($response->getStatusCode() == 200) {
+        $body = $response->getBody();
+
+        $this->entity->set('hubspot_line_item_id', $body['objectId'])->save();
+      }
+    }
+    else {
+      $line_items->update($hubspot_entity_id, $hubspot_field_properties);
+    }
   }
 
 }
