@@ -9,6 +9,8 @@ use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Logger\LoggerChannelFactoryInterface;
 
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
+
 /**
  * The SyncToService class.
  *
@@ -40,6 +42,13 @@ class SyncToService implements SyncToServiceInterface {
   public $client;
 
   /**
+   * An event dispatcher instance.
+   *
+   * @var \Symfony\Component\EventDispatcher\EventDispatcherInterface
+   */
+  protected $eventDispatcher;
+
+  /**
    * Constructs a new HubSpot Commerce service instance.
    *
    * @param \Drupal\hubspot_api\Manager $hubspot_manager
@@ -48,16 +57,20 @@ class SyncToService implements SyncToServiceInterface {
    *   The entity type manger.
    * @param \Drupal\Core\Logger\LoggerChannelFactoryInterface $logger_factory
    *   The logger factory.
+   * @param \Symfony\Component\EventDispatcher\EventDispatcherInterface $event_dispatcher
+   *   The event dispatcher.
    *
    * @throws \Exception
    */
   public function __construct(
     Manager $hubspot_manager,
     EntityTypeManagerInterface $entity_type_manager,
-    LoggerChannelFactoryInterface $logger_factory
+    LoggerChannelFactoryInterface $logger_factory,
+    EventDispatcherInterface $event_dispatcher
   ) {
     $this->entityTypeManager = $entity_type_manager;
     $this->logger = $logger_factory->get(COMMERCE_HUBSPOT_LOGGER_CHANNEL);
+    $this->eventDispatcher = $event_dispatcher;
 
     // Initialize our Hubspot API client.
     $this->client = $hubspot_manager->getHandler()->client;
@@ -74,10 +87,9 @@ class SyncToService implements SyncToServiceInterface {
     // to sync this Drupal entity with.
     $entity_mapping = [];
     $event = new EntityMappingEvent($entity_mapping);
-    $event_dispatcher = \Drupal::service('event_dispatcher');
-    $event_dispatcher->dispatch(EntityMappingEvent::EVENT_NAME, $event);
+    $this->eventDispatcher->dispatch(EntityMappingEvent::EVENT_NAME, $event);
 
-    if (!isset($entity_mapping['type']) && !isset($entity_mapping['id'])) {
+    if (empty($entity_mapping['type'])) {
       return;
     }
   }
