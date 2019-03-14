@@ -7,8 +7,8 @@ use Symfony\Component\EventDispatcher\Event;
 /**
  * Event that gets dispatched when an entity is about to be synced.
  *
- * Allows modules to tell us which which Hubspot entity and ID a Drupal
- * entity will be mapped to.
+ * Allows modules to define which Hubspot entity and ID a Drupal entity
+ * will be mapped to.
  *
  * @package Drupal\commerce_hubspot\Event
  */
@@ -17,7 +17,7 @@ class EntityMappingEvent extends Event {
   const EVENT_NAME = 'commerce_hubspot.entity_sync_to.entity_mapping';
 
   /**
-   * An array telling us which Hubspot entity this entity should be mapped to.
+   * An array defining which Hubspot entity this entity should be mapped to.
    *
    * @var array
    *   IE. return [
