@@ -9,6 +9,7 @@ use Drupal\hubspot_api\Manager;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Logger\LoggerChannelFactoryInterface;
+
 use SevenShores\Hubspot\Resources\Contacts;
 use SevenShores\Hubspot\Resources\Deals;
 use SevenShores\Hubspot\Resources\Products;
