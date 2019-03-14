@@ -35,7 +35,6 @@ function commerce_hubspot_help($route_name, RouteMatchInterface $route_match) {
  * Implements hook_entity_update().
  */
 function commerce_hubspot_entity_update(EntityInterface $entity) {
-  // TODO: Make this configurable.
   $entities_to_sync = [
     'order',
     'order_item',
