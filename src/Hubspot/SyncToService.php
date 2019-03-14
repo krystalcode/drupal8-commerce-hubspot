@@ -3,9 +3,9 @@
 namespace Drupal\commerce_hubspot\Hubspot;
 
 use Drupal\commerce_hubspot\Event\EntityMappingEvent;
-use Drupal\Core\Entity\EntityInterface;
 use Drupal\hubspot_api\Manager;
 
+use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Logger\LoggerChannelFactoryInterface;
 
