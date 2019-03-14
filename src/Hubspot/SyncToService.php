@@ -89,7 +89,8 @@ class SyncToService implements SyncToServiceInterface {
     $entity_mapping = [];
     $event = new EntityMappingEvent($entity_mapping);
     $this->eventDispatcher->dispatch(EntityMappingEvent::EVENT_NAME, $event);
-    if (empty($entity_mapping['type'])) {
+
+    if (empty($entity_mapping)) {
       return;
     }
 
