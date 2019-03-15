@@ -64,4 +64,17 @@ class SyncEntityTypesEvent extends Event {
     return $this->entitiesToSync;
   }
 
+  /**
+   * Sets the entities to sync.
+   *
+   * @param array $entities_to_sync
+   *   The entities to sync.
+   *
+   * @return $this
+   */
+  public function setEntitiesToSync(array $entities_to_sync) {
+    $this->entitiesToSync = $entities_to_sync;
+    return $this;
+  }
+
 }
