@@ -86,7 +86,7 @@ class SyncToService implements SyncToServiceInterface {
     // Dispatch an event to allow modules to tell us which Hubspot entity and ID
     // to sync this Drupal entity with.
     $entity_mapping = [];
-    $event = new EntityMappingEvent($entity_mapping);
+    $event = new EntityMappingEvent($entity, $entity_mapping);
     $this->eventDispatcher->dispatch(EntityMappingEvent::EVENT_NAME, $event);
 
     if (empty($entity_mapping['type'])) {

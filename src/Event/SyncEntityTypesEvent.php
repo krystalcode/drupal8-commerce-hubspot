@@ -40,8 +40,8 @@ class SyncEntityTypesEvent extends Event {
    *   The entity types to sync.
    */
   public function __construct(EntityInterface $entity, array $entities_to_sync) {
-    $this->entitiesToSync = $entities_to_sync;
     $this->entity = $entity;
+    $this->entitiesToSync = $entities_to_sync;
   }
 
 }
