@@ -69,4 +69,17 @@ class EntityMappingEvent extends Event {
     return $this->entityMapping;
   }
 
+  /**
+   * Sets the entity mapping.
+   *
+   * @param array $entity_mapping
+   *   The entity mapping array.
+   *
+   * @return $this
+   */
+  public function setEntityMapping(array $entity_mapping) {
+    $this->entityMapping = $entity_mapping;
+    return $this;
+  }
+
 }
