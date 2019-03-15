@@ -76,4 +76,17 @@ class FieldMappingEvent extends Event {
     return $this->fieldMapping;
   }
 
+  /**
+   * Sets the field mapping.
+   *
+   * @param array $field_mapping
+   *   The field mapping array.
+   *
+   * @return $this
+   */
+  public function setFieldMapping(array $field_mapping) {
+    $this->fieldMapping = $field_mapping;
+    return $this;
+  }
+
 }
