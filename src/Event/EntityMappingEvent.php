@@ -65,7 +65,7 @@ class EntityMappingEvent extends Event {
    * @return array
    *   The entity mapping array.
    */
-  public function getEntitiesToSync() {
+  public function getEntityMapping() {
     return $this->entityMapping;
   }
 
