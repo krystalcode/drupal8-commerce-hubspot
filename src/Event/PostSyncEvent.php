@@ -25,7 +25,7 @@ class PostSyncEvent extends Event {
   /**
    * The Hubspot remote ID that was returned after syncing.
    *
-   * @var int
+   * @var string
    */
   protected $remoteId;
 
@@ -34,7 +34,7 @@ class PostSyncEvent extends Event {
    *
    * @param \Drupal\Core\Entity\EntityInterface $entity
    *   The entity that was updated.
-   * @param int $remote_id
+   * @param string $remote_id
    *   The Hubspot remote ID that was returned after syncing.
    */
   public function __construct(EntityInterface $entity, $remote_id) {
@@ -55,7 +55,7 @@ class PostSyncEvent extends Event {
   /**
    * Gets the Hubspot remote ID.
    *
-   * @return int
+   * @return string
    *   The remote ID.
    */
   public function getRemoteId() {

@@ -164,7 +164,7 @@ class SyncToService implements SyncToServiceInterface {
    * @param int $hubspot_entity_id
    *   The Hubspot contact ID if the contact has already been synced to Hubspot.
    *
-   * @return bool|int
+   * @return bool|string
    *   The remote ID. False otherwise.
    *
    * @throws \Exception
@@ -198,7 +198,7 @@ class SyncToService implements SyncToServiceInterface {
    * @param int $hubspot_entity_id
    *   The Hubspot deal ID if the deal has already been synced to Hubspot.
    *
-   * @return bool|int
+   * @return bool|string
    *   The remote ID. False otherwise.
    *
    * @throws \Exception
@@ -232,7 +232,7 @@ class SyncToService implements SyncToServiceInterface {
    * @param int $hubspot_entity_id
    *   The Hubspot deal ID if the deal has already been synced to Hubspot.
    *
-   * @return bool|int
+   * @return bool|string
    *   The remote ID. False otherwise.
    */
   protected function syncProduct(array $hubspot_field_properties, $hubspot_entity_id = NULL) {
@@ -265,7 +265,7 @@ class SyncToService implements SyncToServiceInterface {
    * @param int $hubspot_entity_id
    *   The Hubspot deal ID if the deal has already been synced to Hubspot.
    *
-   * @return bool|int
+   * @return bool|string
    *   The remote ID. False otherwise.
    */
   protected function syncLineItem(array $hubspot_field_properties, $hubspot_entity_id = NULL) {
