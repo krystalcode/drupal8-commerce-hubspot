@@ -44,4 +44,24 @@ class SyncEntityTypesEvent extends Event {
     $this->entity = $entity;
   }
 
+  /**
+   * Gets the entity.
+   *
+   * @return \Drupal\Core\Entity\EntityInterface
+   *   The entity.
+   */
+  public function getEntity() {
+    return $this->entity;
+  }
+
+  /**
+   * Gets the entities to sync.
+   *
+   * @return array
+   *   The entities to sync.
+   */
+  public function getEntitiesToSync() {
+    return $this->entitiesToSync;
+  }
+
 }
