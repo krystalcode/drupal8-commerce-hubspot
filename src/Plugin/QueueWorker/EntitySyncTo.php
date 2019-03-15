@@ -59,7 +59,7 @@ class EntitySyncTo extends QueueWorkerBase implements ContainerFactoryPluginInte
       $plugin_id,
       $plugin_definition,
       $container->get('entity_type.manager'),
-      $container->get('commerce_hubspot.sync_to.service')
+      $container->get('commerce_hubspot.sync_to')
     );
   }
 
