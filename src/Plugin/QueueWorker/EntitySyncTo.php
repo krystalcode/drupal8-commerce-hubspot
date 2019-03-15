@@ -4,6 +4,7 @@ namespace Drupal\commerce_hubspot\Plugin\QueueWorker;
 
 use Drupal\commerce_hubspot\Hubspot\SyncToServiceInterface;
 
+use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Queue\QueueWorkerBase;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 
@@ -21,6 +22,12 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 class EntitySyncTo extends QueueWorkerBase implements ContainerFactoryPluginInterface {
 
   /**
+   * The entity type manager.
+   *
+   * @var \Drupal\core\Entity\EntityTypeManagerInterface
+   */
+  protected $entityTypeManager;
+  /**
    * The Commerce Hubspot sync to service.
    *
    * @var \Drupal\commerce_hubspot\Hubspot\SyncToServiceInterface
@@ -34,10 +41,12 @@ class EntitySyncTo extends QueueWorkerBase implements ContainerFactoryPluginInte
     array $configuration,
     $plugin_id,
     $plugin_definition,
+    EntityTypeManagerInterface $entity_type_manager,
     SyncToServiceInterface $sync_to
   ) {
     parent::__construct($configuration, $plugin_id, $plugin_definition);
 
+    $this->entityTypeManager = $entity_type_manager;
     $this->syncTo = $sync_to;
   }
 
@@ -49,6 +58,7 @@ class EntitySyncTo extends QueueWorkerBase implements ContainerFactoryPluginInte
       $configuration,
       $plugin_id,
       $plugin_definition,
+      $container->get('entity_type.manager'),
       $container->get('commerce_hubspot.sync_to.service')
     );
   }
@@ -56,7 +66,12 @@ class EntitySyncTo extends QueueWorkerBase implements ContainerFactoryPluginInte
   /**
    * {@inheritdoc}
    */
-  public function processItem($entity) {
+  public function processItem($data) {
+    $entity = $this
+      ->entityTypeManager
+      ->getStorage($data['entity_type'])
+      ->load($data['entity_id']);
+
     $this->syncTo->sync($entity);
   }
 
