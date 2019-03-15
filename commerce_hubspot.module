@@ -54,5 +54,8 @@ function commerce_hubspot_entity_update(EntityInterface $entity) {
 
   $queue_factory = \Drupal::service('queue');
   $queue = $queue_factory->get('commerce_hubspot_entity_sync_to');
-  $queue->createItem($entity);
+  $queue->createItem([
+    'entity_type' => $entity->getEntityType()->id(),
+    'entity_id' => $entity->id(),
+  ]);
 }
