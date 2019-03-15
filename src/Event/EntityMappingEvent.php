@@ -2,6 +2,8 @@
 
 namespace Drupal\commerce_hubspot\Event;
 
+use Drupal\Core\Entity\EntityInterface;
+
 use Symfony\Component\EventDispatcher\Event;
 
 /**
@@ -17,6 +19,13 @@ class EntityMappingEvent extends Event {
   const EVENT_NAME = 'commerce_hubspot.entity_sync_to.entity_mapping';
 
   /**
+   * The entity that's being updated.
+   *
+   * @var \Drupal\Core\Entity\EntityInterface
+   */
+  protected $entity;
+
+  /**
    * An array defining which Hubspot entity this entity should be mapped to.
    *
    * @var array
@@ -30,10 +39,13 @@ class EntityMappingEvent extends Event {
   /**
    * Constructs the object.
    *
+   * @param \Drupal\Core\Entity\EntityInterface $entity
+   *   The entity that's being updated.
    * @param array $entity_mapping
    *   The Hubspot entity and ID that this Drupal entity should be mapped to.
    */
-  public function __construct(array $entity_mapping) {
+  public function __construct(EntityInterface $entity, array $entity_mapping) {
+    $this->entity = $entity;
     $this->entityMapping = $entity_mapping;
   }
 

@@ -2,6 +2,8 @@
 
 namespace Drupal\commerce_hubspot\Event;
 
+use Drupal\Core\Entity\EntityInterface;
+
 use Symfony\Component\EventDispatcher\Event;
 
 /**
@@ -15,6 +17,13 @@ use Symfony\Component\EventDispatcher\Event;
 class FieldMappingEvent extends Event {
 
   const EVENT_NAME = 'commerce_hubspot.entity_sync_to.field_mapping';
+
+  /**
+   * The entity that's being updated.
+   *
+   * @var \Drupal\Core\Entity\EntityInterface
+   */
+  protected $entity;
 
   /**
    * An array telling us which Drupal fields should map to which Hubspot fields.
@@ -37,10 +46,13 @@ class FieldMappingEvent extends Event {
   /**
    * Constructs the object.
    *
+   * @param \Drupal\Core\Entity\EntityInterface $entity
+   *   The entity that's being updated.
    * @param array $field_mapping
    *   An array of Drupal field names with the Hubspot mapping information.
    */
-  public function __construct(array $field_mapping) {
+  public function __construct(EntityInterface $entity, array $field_mapping) {
+    $this->entity = $entity;
     $this->fieldMapping = $field_mapping;
   }
 

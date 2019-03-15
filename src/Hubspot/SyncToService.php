@@ -100,7 +100,7 @@ class SyncToService implements SyncToServiceInterface {
     // Dispatch an event to allow modules to tell us which Hubspot entity and ID
     // to sync this Drupal entity with.
     $entity_mapping = [];
-    $event = new EntityMappingEvent($entity_mapping);
+    $event = new EntityMappingEvent($entity, $entity_mapping);
     $this->eventDispatcher->dispatch(EntityMappingEvent::EVENT_NAME, $event);
 
     if (empty($entity_mapping['type'])) {
@@ -110,7 +110,7 @@ class SyncToService implements SyncToServiceInterface {
     // Now, dispatch another event to allow modules to define which Drupal
     // fields will be synced to which HubSpot fields for this entity.
     $field_mapping = [];
-    $event = new FieldMappingEvent($field_mapping);
+    $event = new FieldMappingEvent($entity, $field_mapping);
     $this->eventDispatcher->dispatch(FieldMappingEvent::EVENT_NAME, $event);
 
     if (empty($field_mapping)) {
