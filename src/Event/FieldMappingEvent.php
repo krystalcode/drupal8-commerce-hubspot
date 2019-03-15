@@ -56,4 +56,24 @@ class FieldMappingEvent extends Event {
     $this->fieldMapping = $field_mapping;
   }
 
+  /**
+   * Gets the entity.
+   *
+   * @return \Drupal\Core\Entity\EntityInterface
+   *   The entity.
+   */
+  public function getEntity() {
+    return $this->entity;
+  }
+
+  /**
+   * Gets the field mapping array.
+   *
+   * @return array
+   *   The field mapping array.
+   */
+  public function getFieldMapping() {
+    return $this->fieldMapping;
+  }
+
 }
