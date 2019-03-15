@@ -49,4 +49,24 @@ class EntityMappingEvent extends Event {
     $this->entityMapping = $entity_mapping;
   }
 
+  /**
+   * Gets the entity.
+   *
+   * @return \Drupal\Core\Entity\EntityInterface
+   *   The entity.
+   */
+  public function getEntity() {
+    return $this->entity;
+  }
+
+  /**
+   * Gets the entity mapping array.
+   *
+   * @return array
+   *   The entity mapping array.
+   */
+  public function getEntitiesToSync() {
+    return $this->entityMapping;
+  }
+
 }
