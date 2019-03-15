@@ -93,6 +93,9 @@ class SyncToService implements SyncToServiceInterface {
    *
    * @param \Drupal\Core\Entity\EntityInterface $entity
    *   The entity we're syncing (ie. user/order/product variation).
+   *
+   * @return mixed
+   *   The remote ID.
    */
   public function sync(EntityInterface $entity) {
     $this->entity = $entity;
@@ -125,7 +128,7 @@ class SyncToService implements SyncToServiceInterface {
 
     // Now, do the actual syncing depending on the entity type.
     $function_name = 'sync' . $entity_mapping['type'];
-    $this->$function_name($hubspot_field_properties, $entity_mapping['id']);
+    return $this->$function_name($hubspot_field_properties, $entity_mapping['id']);
   }
 
   /**
@@ -161,6 +164,9 @@ class SyncToService implements SyncToServiceInterface {
    * @param int $hubspot_entity_id
    *   The Hubspot contact ID if the contact has already been synced to Hubspot.
    *
+   * @return bool|int
+   *   The remote ID. False otherwise.
+   *
    * @throws \Exception
    */
   protected function syncContact(array $hubspot_field_properties, $hubspot_entity_id = NULL) {
@@ -169,17 +175,19 @@ class SyncToService implements SyncToServiceInterface {
     // Create the contact if it hasn't been synced yet.
     if (!$hubspot_entity_id) {
       $response = $contacts->create($hubspot_field_properties);
-
-      // If we were successful, save the Hubspot contact ID in the entity.
-      if ($response->getStatusCode() == 200) {
-        $body = $response->getBody();
-
-        $this->entity->set('hubspot_contact_id', $body['vid'])->save();
-      }
     }
     else {
-      $contacts->update($hubspot_entity_id, $hubspot_field_properties);
+      $response = $contacts->update($hubspot_entity_id, $hubspot_field_properties);
     }
+
+    // If we were successful, return the remote ID.
+    if ($response->getStatusCode() == 200) {
+      $body = $response->getBody();
+
+      return $body['vid'];
+    }
+
+    return FALSE;
   }
 
   /**
@@ -190,6 +198,9 @@ class SyncToService implements SyncToServiceInterface {
    * @param int $hubspot_entity_id
    *   The Hubspot deal ID if the deal has already been synced to Hubspot.
    *
+   * @return bool|int
+   *   The remote ID. False otherwise.
+   *
    * @throws \Exception
    */
   protected function syncDeal(array $hubspot_field_properties, $hubspot_entity_id = NULL) {
@@ -198,17 +209,19 @@ class SyncToService implements SyncToServiceInterface {
     // Create the deal if it hasn't been synced yet.
     if (!$hubspot_entity_id) {
       $response = $deals->create($hubspot_field_properties);
-
-      // If we were successful, save the Hubspot deal ID in the entity.
-      if ($response->getStatusCode() == 200) {
-        $body = $response->getBody();
-
-        $this->entity->set('hubspot_deal_id', $body['dealId'])->save();
-      }
     }
     else {
-      $deals->update($hubspot_entity_id, $hubspot_field_properties);
+      $response = $deals->update($hubspot_entity_id, $hubspot_field_properties);
     }
+
+    // If we were successful, return the remote ID.
+    if ($response->getStatusCode() == 200) {
+      $body = $response->getBody();
+
+      return $body['dealId'];
+    }
+
+    return FALSE;
   }
 
   /**
@@ -218,6 +231,9 @@ class SyncToService implements SyncToServiceInterface {
    *   An array of Hubspot properties with their values.
    * @param int $hubspot_entity_id
    *   The Hubspot deal ID if the deal has already been synced to Hubspot.
+   *
+   * @return bool|int
+   *   The remote ID. False otherwise.
    */
   protected function syncProduct(array $hubspot_field_properties, $hubspot_entity_id = NULL) {
     // TODO: Create the API on the SDK first.
@@ -226,17 +242,19 @@ class SyncToService implements SyncToServiceInterface {
     // Create the product if it hasn't been synced yet.
     if (!$hubspot_entity_id) {
       $response = $products->create($hubspot_field_properties);
-
-      // If we were successful, save the Hubspot product ID in the entity.
-      if ($response->getStatusCode() == 200) {
-        $body = $response->getBody();
-
-        $this->entity->set('hubspot_product_id', $body['objectId'])->save();
-      }
     }
     else {
-      $products->update($hubspot_entity_id, $hubspot_field_properties);
+      $response = $products->update($hubspot_entity_id, $hubspot_field_properties);
     }
+
+    // If we were successful, return the remote ID.
+    if ($response->getStatusCode() == 200) {
+      $body = $response->getBody();
+
+      return $body['objectId'];
+    }
+
+    return FALSE;
   }
 
   /**
@@ -246,6 +264,9 @@ class SyncToService implements SyncToServiceInterface {
    *   An array of Hubspot properties with their values.
    * @param int $hubspot_entity_id
    *   The Hubspot deal ID if the deal has already been synced to Hubspot.
+   *
+   * @return bool|int
+   *   The remote ID. False otherwise.
    */
   protected function syncLineItem(array $hubspot_field_properties, $hubspot_entity_id = NULL) {
     // TODO: Create the API on the SDK first.
@@ -254,17 +275,19 @@ class SyncToService implements SyncToServiceInterface {
     // Create the line item if it hasn't been synced yet.
     if (!$hubspot_entity_id) {
       $response = $line_items->create($hubspot_field_properties);
-
-      // If we were successful, save the Hubspot line item ID in the entity.
-      if ($response->getStatusCode() == 200) {
-        $body = $response->getBody();
-
-        $this->entity->set('hubspot_line_item_id', $body['objectId'])->save();
-      }
     }
     else {
-      $line_items->update($hubspot_entity_id, $hubspot_field_properties);
+      $response = $line_items->update($hubspot_entity_id, $hubspot_field_properties);
     }
+
+    // If we were successful, return the remote ID.
+    if ($response->getStatusCode() == 200) {
+      $body = $response->getBody();
+
+      return $body['objectId'];
+    }
+
+    return FALSE;
   }
 
 }
