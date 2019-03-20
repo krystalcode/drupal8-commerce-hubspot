@@ -5,3 +5,4 @@ services:
       - '@hubspot_api.manager'
       - '@entity_type.manager'
       - '@logger.factory'
+      - '@event_dispatcher'
