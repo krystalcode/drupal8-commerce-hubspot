@@ -2,12 +2,14 @@
 
 namespace Drupal\commerce_hubspot\Hubspot;
 
-use Drupal\Core\Logger\LoggerChannelFactoryInterface;
-use Drupal\Core\Messenger\MessengerInterface;
+use Drupal\commerce_hubspot\Event\BuildCommerceBridgeEvent;
 use Drupal\hubspot_api\Manager;
 
+use Drupal\Core\Logger\LoggerChannelFactoryInterface;
+use Drupal\Core\Messenger\MessengerInterface;
+
 use SevenShores\Hubspot\Resources\EcommerceBridge;
-use function var_export;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 /**
  * Contains functions to install and enable the eCommerce settings on Hubspot.
@@ -38,6 +40,13 @@ class EcommerceBridgeService implements ECommerceBridgeServiceInterface {
   protected $messenger;
 
   /**
+   * An event dispatcher instance.
+   *
+   * @var \Symfony\Component\EventDispatcher\EventDispatcherInterface
+   */
+  protected $eventDispatcher;
+
+  /**
    * Constructs a new HubSpot Commerce service instance.
    *
    * @param \Drupal\hubspot_api\Manager $hubspot_manager
@@ -46,16 +55,20 @@ class EcommerceBridgeService implements ECommerceBridgeServiceInterface {
    *   The logger factory.
    * @param \Drupal\Core\Messenger\MessengerInterface $messenger
    *   The messenger service.
+   * @param \Symfony\Component\EventDispatcher\EventDispatcherInterface $event_dispatcher
+   *   The event dispatcher.
    *
    * @throws \Exception
    */
   public function __construct(
     Manager $hubspot_manager,
     LoggerChannelFactoryInterface $logger_factory,
-    MessengerInterface $messenger
+    MessengerInterface $messenger,
+    EventDispatcherInterface $event_dispatcher
   ) {
     $this->logger = $logger_factory->get(COMMERCE_HUBSPOT_LOGGER_CHANNEL);
     $this->messenger = $messenger;
+    $this->eventDispatcher = $event_dispatcher;
 
     // Initialize our Hubspot API client.
     $this->client = $hubspot_manager->getHandler()->client;
@@ -66,18 +79,18 @@ class EcommerceBridgeService implements ECommerceBridgeServiceInterface {
    */
   public function installSettings() {
     // Let's install the Drupal to Hubspot eCommerce bridge.
-    // First, check if it has already been installed, if not, install it.
     try {
+      // First, check if it has already been installed, if not, install it.
       $ecommerce_bridge = new EcommerceBridge($this->client);
       $response = $ecommerce_bridge->checkInstall();
 
       if ($response->getStatusCode() != 200) {
-        $this->messenger->addError(t('An error occurred while fetching the Hubspot eCommerce install status.'));
+        $this->messenger->addError($this->t('An error occurred while fetching the Hubspot eCommerce install status.'));
         return;
       }
 
-      $data = $response->getData();
       // Install the bridge if not installed already.
+      $data = $response->getData();
       if (!$data->installCompleted) {
         $response = $ecommerce_bridge->install();
       }
@@ -87,18 +100,24 @@ class EcommerceBridgeService implements ECommerceBridgeServiceInterface {
         return;
       }
 
-      $response = $ecommerce_bridge->upsertSettings([
+      $settings = [
         'enabled' => TRUE,
         'importOnInstall' => FALSE,
         'dealSyncSettings' => $this->getDealPropertyMappings(),
         'productSyncSettings' => $this->getProductPropertyMappings(),
         'lineItemSyncSettings' => $this->getLineItemPropertyMappings(),
         'contactSyncSettings' => $this->getContactPropertyMappings(),
-      ]);
+      ];
+      // Dispatch an event to allow other modules to modify the settings.
+      $event = new BuildCommerceBridgeEvent($settings);
+      $this->eventDispatcher->dispatch(BuildCommerceBridgeEvent::EVENT_NAME, $event);
 
-      // An error occurred while sending the mapping.
+      // Now, make our request to enable the eCommerce bridge.
+      $response = $ecommerce_bridge->upsertSettings($settings);
+
+      // An error occurred while enabling.
       if ($response->getStatusCode() != 200) {
-        $this->messenger->addError(t('An error occurred while creating the eCommerce property mappings in Hubspot.'));
+        $this->messenger->addError($this->t('An error occurred while enabling the eCommerce bridge on Hubspot.'));
         return;
       }
 
@@ -106,19 +125,19 @@ class EcommerceBridgeService implements ECommerceBridgeServiceInterface {
       $data = $response->getData();
       // The eCommerce bridge still has not enabled.
       if (!$data->enabled) {
-        $this->messenger->addError(t('Could not enable the eCommerce bridge on Hubspot.'));
+        $this->messenger->addError($this->t('Could not enable the eCommerce bridge on Hubspot.'));
         return;
       }
 
       // All good.
-      $this->messenger->addError(t('Successfully installed and enabled the Hubspot eCommerce bridge.'));
+      $this->messenger->addError($this->t('Successfully installed and enabled the Hubspot eCommerce bridge.'));
     }
     catch (Exception $e) {
-      $this->logger->error(t('An error occurred while trying to install the Hubspot eCommerce bridge. The error was: @error', [
+      $this->logger->error($this->t('An error occurred while trying to install the Hubspot eCommerce bridge. The error was: @error', [
         '@error' => $e->getMessage(),
       ]));
 
-      $this->messenger->addError(t('An error occurred while trying to install the Hubspot eCommerce bridge.'));
+      $this->messenger->addError($this->t('An error occurred while trying to install the Hubspot eCommerce bridge.'));
     }
   }
 
