@@ -8,6 +8,7 @@
 use Drupal\commerce_hubspot\Event\SyncEntityTypesEvent;
 use Drupal\Core\Routing\RouteMatchInterface;
 use Drupal\Core\Entity\EntityInterface;
+use Drupal\Core\Form\FormStateInterface;
 
 const COMMERCE_HUBSPOT_LOGGER_CHANNEL = 'commerce_hubspot';
 
@@ -58,4 +59,24 @@ function commerce_hubspot_entity_update(EntityInterface $entity) {
     'entity_type' => $entity->getEntityType()->id(),
     'entity_id' => $entity->id(),
   ]);
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ */
+function commerce_hubspot_form_hubspot_api_settings_alter(&$form, FormStateInterface $form_state, $form_id) {
+  // Add a custom submit to install the eCommerce bridge for Hubspot.
+  $form['#submit'][] = 'commerce_hubspot_api_settings_form_submit';
+}
+
+/**
+ * Install the Hubspot eCommerce bridge if it hasn't been already.
+ *
+ * @param array $form
+ *   The form array.
+ * @param \Drupal\Core\Form\FormStateInterface $form_state
+ *   The form state interface.
+ */
+function commerce_hubspot_api_settings_form_submit(array &$form, FormStateInterface $form_state) {
+  \Drupal::service('commerce_hubspot.ecommerce_bridge')->installSettings();
 }

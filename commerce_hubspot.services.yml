@@ -6,3 +6,10 @@ services:
       - '@entity_type.manager'
       - '@logger.factory'
       - '@event_dispatcher'
+
+  commerce_hubspot.ecommerce_bridge:
+    class: Drupal\commerce_hubspot\Hubspot\EcommerceBridgeService
+    arguments:
+      - '@hubspot_api.manager'
+      - '@logger.factory'
+      - '@messenger'
