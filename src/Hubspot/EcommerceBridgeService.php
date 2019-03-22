@@ -239,7 +239,7 @@ class EcommerceBridgeService implements ECommerceBridgeServiceInterface {
           'targetHubspotProperty' => 'createdate',
         ],
         [
-          'propertyName' => 'commerce_order.updated',
+          'propertyName' => 'commerce_order.completed',
           'dataType' => 'STRING',
           'targetHubspotProperty' => 'closedate',
         ],
@@ -247,11 +247,6 @@ class EcommerceBridgeService implements ECommerceBridgeServiceInterface {
           'propertyName' => 'commerce_order.owner.id',
           'dataType' => 'NUMBER',
           'targetHubspotProperty' => 'hubspot_owner_id	',
-        ],
-        [
-          'propertyName' => 'commerce_order.customer.id',
-          'dataType' => 'NUMBER',
-          'targetHubspotProperty' => 'hs_assoc__contact_ids	',
         ],
       ],
     ];

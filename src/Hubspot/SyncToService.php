@@ -148,7 +148,7 @@ class SyncToService implements SyncToServiceInterface {
       }
 
       $hubspot_field_properties[] = [
-        'property' => $hubspot_field['id'],
+        'property' => $drupal_field_name,
         'value' => $hubspot_field['value'],
       ];
     }
