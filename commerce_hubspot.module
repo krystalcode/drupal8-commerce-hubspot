@@ -72,7 +72,8 @@ function commerce_hubspot_form_hubspot_api_settings_alter(&$form, FormStateInter
     '#type' => 'checkbox',
     '#title' => t('Install eCommerce Bridge'),
     '#description' => t('Install and enable the eCommerce Bridge on Hubspot.<br>
-      <strong>Warning:</strong> Do this ONLY when the property mappings have been completely defined as it will override any current mappings that exist on Hubspot.'),
+      <strong>Warning:</strong> Enable ONLY when the property mappings have been completely defined as it will override any current mappings that exist on Hubspot.<br>
+      <strong>Warning:</strong> Unchecking this box after installation will uninstall and delete the eCommerce bridge settings.'),
     '#default_value' => $config->get('install_bridge'),
   ];
 
@@ -89,16 +90,21 @@ function commerce_hubspot_form_hubspot_api_settings_alter(&$form, FormStateInter
  *   The form state interface.
  */
 function commerce_hubspot_api_settings_form_submit(array &$form, FormStateInterface $form_state) {
-  // Save the checkbox value in the config.
+  // If the bridge was previously installed, and the checkbox is unchecked now
+  // uninstall the bridge.
   $install_bridge = $form_state->getValue('install_bridge');
   $config = \Drupal::service('config.factory')->getEditable('hubspot_api.settings');
+
+  if (!$install_bridge && $config->get('install_bridge')) {
+    \Drupal::service('commerce_hubspot.ecommerce_bridge')->uninstallBridge();
+  }
+  // If the user opted to install the bridge, install it.
+  else {
+    \Drupal::service('commerce_hubspot.ecommerce_bridge')->installBridge();
+  }
+
+  // Save the config.
   $config
     ->set('install_bridge', $install_bridge)
     ->save();
-
-  // If the user opted to install the bridge, call our service.
-  if (!$install_bridge) {
-    return;
-  }
-  \Drupal::service('commerce_hubspot.ecommerce_bridge')->installSettings();
 }

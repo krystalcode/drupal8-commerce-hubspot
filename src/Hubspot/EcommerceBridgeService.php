@@ -7,6 +7,7 @@ use Drupal\hubspot_api\Manager;
 
 use Drupal\Core\Logger\LoggerChannelFactoryInterface;
 use Drupal\Core\Messenger\MessengerInterface;
+use Drupal\Core\StringTranslation\StringTranslationTrait;
 
 use SevenShores\Hubspot\Resources\EcommerceBridge;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
@@ -17,6 +18,8 @@ use Symfony\Component\EventDispatcher\EventDispatcherInterface;
  * @package Drupal\commerce_hubspot\Hubspot
  */
 class EcommerceBridgeService implements ECommerceBridgeServiceInterface {
+
+  use StringTranslationTrait;
 
   /**
    * The client.
@@ -47,6 +50,13 @@ class EcommerceBridgeService implements ECommerceBridgeServiceInterface {
   protected $eventDispatcher;
 
   /**
+   * The eCommerce bridge service.
+   *
+   * @var \SevenShores\Hubspot\Resources\EcommerceBridge
+   */
+  protected $eCommerceBridge;
+
+  /**
    * Constructs a new HubSpot Commerce service instance.
    *
    * @param \Drupal\hubspot_api\Manager $hubspot_manager
@@ -72,65 +82,28 @@ class EcommerceBridgeService implements ECommerceBridgeServiceInterface {
 
     // Initialize our Hubspot API client.
     $this->client = $hubspot_manager->getHandler()->client;
+
+    // Initialize the EcommerceBridge.
+    $this->eCommerceBridge = new EcommerceBridge($this->client);
   }
 
   /**
    * {@inheritdoc}
    */
-  public function installSettings() {
-    // Let's install the Drupal to Hubspot eCommerce bridge.
+  public function installBridge() {
+    // Let's install and enable the Drupal to Hubspot eCommerce bridge.
     try {
-      // First, check if it has already been installed, if not, install it.
-      $ecommerce_bridge = new EcommerceBridge($this->client);
-      $response = $ecommerce_bridge->checkInstall();
+      // Install the eCommerce bridge.
+      $this->installEcommerceBridge();
 
-      if ($response->getStatusCode() != 200) {
-        $this->messenger->addError($this->t('An error occurred while fetching the Hubspot eCommerce install status.'));
-        return;
-      }
+      // TODO: Create the necessary Commerce fields that we need on Hubspot.
+      // We first need to add the Product and LineItem resources in the SDK.
 
-      // Install the bridge if not installed already.
-      $data = $response->getData();
-      if (!$data->installCompleted) {
-        $response = $ecommerce_bridge->install();
-      }
-
-      // Create the eCommerce property mappings if not already mapped.
-      if ($data->ecommSettingsEnabled) {
-        return;
-      }
-
-      $settings = [
-        'enabled' => TRUE,
-        'importOnInstall' => FALSE,
-        'dealSyncSettings' => $this->getDealPropertyMappings(),
-        'productSyncSettings' => $this->getProductPropertyMappings(),
-        'lineItemSyncSettings' => $this->getLineItemPropertyMappings(),
-        'contactSyncSettings' => $this->getContactPropertyMappings(),
-      ];
-      // Dispatch an event to allow other modules to modify the settings.
-      $event = new BuildCommerceBridgeEvent($settings);
-      $this->eventDispatcher->dispatch(BuildCommerceBridgeEvent::EVENT_NAME, $event);
-
-      // Now, make our request to enable the eCommerce bridge.
-      $response = $ecommerce_bridge->upsertSettings($settings);
-
-      // An error occurred while enabling.
-      if ($response->getStatusCode() != 200) {
-        $this->messenger->addError($this->t('An error occurred while enabling the eCommerce bridge on Hubspot.'));
-        return;
-      }
-
-      // Check the response to see if we've successfully enabled the bridge.
-      $data = $response->getData();
-      // The eCommerce bridge still has not enabled.
-      if (!$data->enabled) {
-        $this->messenger->addError($this->t('Could not enable the eCommerce bridge on Hubspot.'));
-        return;
-      }
+      // Enable the eCommerce bridge.
+      $this->enableEcommerceBridge();
 
       // All good.
-      $this->messenger->addError($this->t('Successfully installed and enabled the Hubspot eCommerce bridge.'));
+      $this->messenger->addMessage($this->t('Successfully installed and enabled the Hubspot eCommerce bridge.'));
     }
     catch (Exception $e) {
       $this->logger->error($this->t('An error occurred while trying to install the Hubspot eCommerce bridge. The error was: @error', [
@@ -138,6 +111,86 @@ class EcommerceBridgeService implements ECommerceBridgeServiceInterface {
       ]));
 
       $this->messenger->addError($this->t('An error occurred while trying to install the Hubspot eCommerce bridge.'));
+    }
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function uninstallBridge() {
+    // Let's uninstall and delete the eCommerce bridge settings on Hubspot.
+    try {
+      // Uninstall.
+      $this->eCommerceBridge->uninstall();
+      // Delete settings.
+      $this->eCommerceBridge->deleteSettings();
+
+      // All good.
+      $this->messenger->addMessage($this->t('Successfully uninstalled and deleted the eCommerce bridge settings on Hubspot.'));
+    }
+    catch (Exception $e) {
+      $this->logger->error($this->t('An error occurred while trying to install the Hubspot eCommerce bridge. The error was: @error', [
+        '@error' => $e->getMessage(),
+      ]));
+
+      $this->messenger->addError($this->t('An error occurred while trying to install the Hubspot eCommerce bridge.'));
+    }
+  }
+
+  /**
+   * Install the eCommerce bridge.
+   *
+   * @throws \SevenShores\Hubspot\Exceptions\BadRequest
+   */
+  protected function installEcommerceBridge() {
+    // First, check if it has already been installed, if not, install it.
+    $response = $this->eCommerceBridge->checkInstall();
+
+    if ($response->getStatusCode() != 200) {
+      $this->messenger->addError($this->t('An error occurred while fetching the Hubspot eCommerce install status.'));
+      return;
+    }
+
+    // Install the bridge if not installed already.
+    $data = $response->getData();
+    if ($data->installCompleted) {
+      return;
+    }
+    $this->eCommerceBridge->install();
+  }
+
+  /**
+   * Enable the eCommerce bridge.
+   */
+  protected function enableEcommerceBridge() {
+    // Create the eCommerce property mappings which will enable the bridge.
+    $settings = [
+      'enabled' => TRUE,
+      'importOnInstall' => TRUE,
+      'dealSyncSettings' => $this->getDealPropertyMappings(),
+      'productSyncSettings' => $this->getProductPropertyMappings(),
+      'lineItemSyncSettings' => $this->getLineItemPropertyMappings(),
+      'contactSyncSettings' => $this->getContactPropertyMappings(),
+    ];
+    // Dispatch an event to allow other modules to modify the settings.
+    $event = new BuildCommerceBridgeEvent($settings);
+    $this->eventDispatcher->dispatch(BuildCommerceBridgeEvent::EVENT_NAME, $event);
+
+    // Now, make our request to enable the eCommerce bridge.
+    $response = $this->eCommerceBridge->upsertSettings($settings);
+
+    // An error occurred while enabling.
+    if ($response->getStatusCode() != 200) {
+      $this->messenger->addError($this->t('An error occurred while enabling the eCommerce bridge on Hubspot.'));
+      return;
+    }
+
+    // Check the response to see if we've successfully enabled the bridge.
+    $data = $response->getData();
+    // The eCommerce bridge still has not enabled.
+    if (!$data->enabled) {
+      $this->messenger->addError($this->t('Could not enable the eCommerce bridge on Hubspot.'));
+      return;
     }
   }
 
@@ -151,24 +204,54 @@ class EcommerceBridgeService implements ECommerceBridgeServiceInterface {
     return [
       'properties' => [
         [
-          'propertyName' => 'order_total',
+          'propertyName' => 'commerce_order.state',
+          'dataType' => 'STRING',
+          'targetHubspotProperty' => 'dealstage',
+        ],
+        [
+          'propertyName' => 'commerce_order.type',
+          'dataType' => 'STRING',
+          'targetHubspotProperty' => 'dealtype',
+        ],
+        [
+          'propertyName' => 'commerce_order.name',
+          'dataType' => 'STRING',
+          'targetHubspotProperty' => 'dealname',
+        ],
+        [
+          'propertyName' => 'commerce_order.number',
+          'dataType' => 'STRING',
+          'targetHubspotProperty' => 'ip__ecomm_bridge__order_number',
+        ],
+        [
+          'propertyName' => 'commerce_order.id',
+          'dataType' => 'STRING',
+          'targetHubspotProperty' => 'hs_object_id',
+        ],
+        [
+          'propertyName' => 'commerce_order.total',
           'dataType' => 'NUMBER',
           'targetHubspotProperty' => 'amount',
         ],
         [
-          'propertyName' => 'customer_id',
+          'propertyName' => 'commerce_order.created',
           'dataType' => 'STRING',
-          'targetHubspotProperty' => 'hs_assoc__contact_ids',
+          'targetHubspotProperty' => 'createdate',
         ],
         [
-          'propertyName' => 'order_created',
-          'dataType' => 'DATETIME',
+          'propertyName' => 'commerce_order.updated',
+          'dataType' => 'STRING',
           'targetHubspotProperty' => 'closedate',
         ],
         [
-          'propertyName' => 'stage',
-          'dataType' => 'STRING',
-          'targetHubspotProperty' => 'dealstage',
+          'propertyName' => 'commerce_order.owner.id',
+          'dataType' => 'NUMBER',
+          'targetHubspotProperty' => 'hubspot_owner_id	',
+        ],
+        [
+          'propertyName' => 'commerce_order.customer.id',
+          'dataType' => 'NUMBER',
+          'targetHubspotProperty' => 'hs_assoc__contact_ids	',
         ],
       ],
     ];
@@ -183,15 +266,20 @@ class EcommerceBridgeService implements ECommerceBridgeServiceInterface {
   protected function getProductPropertyMappings() {
     return [
       'properties' => [
+        /*[
+          'propertyName' => 'commerce_product_variation.id',
+          'dataType' => 'NUMBER',
+          'targetHubspotProperty' => 'hs_product_id',
+        ],*/
         [
-          'propertyName' => 'product_title',
+          'propertyName' => 'commerce_product_variation.title',
           'dataType' => 'STRING',
-          'targetHubspotProperty' => 'productname',
+          'targetHubspotProperty' => 'name',
         ],
         [
-          'propertyName' => 'product_image',
-          'dataType' => 'AVATAR_IMAGE',
-          'targetHubSpotProperty' => 'ip__ecomm_bridge__image_url',
+          'propertyName' => 'commerce_product_variation.price',
+          'dataType' => 'NUMBER',
+          'targetHubspotProperty' => 'price',
         ],
       ],
     ];
@@ -207,14 +295,24 @@ class EcommerceBridgeService implements ECommerceBridgeServiceInterface {
     return [
       'properties' => [
         [
-          'propertyName' => 'order_id',
+          'propertyName' => 'commerce_order.field_hubspot_remote_id',
           'dataType' => 'STRING',
           'targetHubspotProperty' => 'hs_assoc__deal_id',
         ],
         [
-          'propertyName' => 'product_id',
+          'propertyName' => 'commerce_product_variation.field_hubspot_remote_id',
           'dataType' => 'STRING',
           'targetHubspotProperty' => 'hs_assoc__product_id',
+        ],
+        [
+          'propertyName' => 'commerce_order_item.quantity',
+          'dataType' => 'NUMBER',
+          'targetHubspotProperty' => 'quantity',
+        ],
+        [
+          'propertyName' => 'commerce_order_item.total',
+          'dataType' => 'STRING',
+          'targetHubspotProperty' => 'price',
         ],
       ],
     ];
@@ -230,19 +328,54 @@ class EcommerceBridgeService implements ECommerceBridgeServiceInterface {
     return [
       'properties' => [
         [
-          'propertyName' => 'given_name',
+          'propertyName' => 'user.email',
+          'dataType' => 'STRING',
+          'targetHubspotProperty' => 'email',
+        ],
+        [
+          'propertyName' => 'commerce_order.billing_address.given_name',
           'dataType' => 'STRING',
           'targetHubspotProperty' => 'firstname',
         ],
         [
-          'propertyName' => 'family_name',
+          'propertyName' => 'commerce_order.billing_address.family_name',
           'dataType' => 'STRING',
           'targetHubspotProperty' => 'lastname',
         ],
         [
-          'propertyName' => 'email',
+          'propertyName' => 'commerce_order.billing_address.address_line1',
           'dataType' => 'STRING',
-          'targetHubspotProperty' => 'email',
+          'targetHubspotProperty' => 'address_1',
+        ],
+        [
+          'propertyName' => 'commerce_order.billing_address.address_line2',
+          'dataType' => 'STRING',
+          'targetHubspotProperty' => 'address_2',
+        ],
+        [
+          'propertyName' => 'commerce_order.billing_address.locality',
+          'dataType' => 'STRING',
+          'targetHubspotProperty' => 'city',
+        ],
+        [
+          'propertyName' => 'commerce_order.billing_address.administrative_area',
+          'dataType' => 'STRING',
+          'targetHubspotProperty' => 'state',
+        ],
+        [
+          'propertyName' => 'commerce_order.billing_address.postal_code',
+          'dataType' => 'STRING',
+          'targetHubspotProperty' => 'zip',
+        ],
+        [
+          'propertyName' => 'commerce_order.billing_address.country_code',
+          'dataType' => 'STRING',
+          'targetHubspotProperty' => 'country',
+        ],
+        [
+          'propertyName' => 'commerce_order.billing_address.field_phone_number',
+          'dataType' => 'STRING',
+          'targetHubspotProperty' => 'phone',
         ],
       ],
     ];

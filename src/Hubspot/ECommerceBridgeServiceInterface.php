@@ -10,8 +10,13 @@ namespace Drupal\commerce_hubspot\Hubspot;
 interface ECommerceBridgeServiceInterface {
 
   /**
-   * Install and enable the Hubspot eCommerce settings.
+   * Install and enable the Hubspot eCommerce bridge.
    */
-  public function installSettings();
+  public function installBridge();
+
+  /**
+   * Uninstall the Hubspot eCommerce bridge.
+   */
+  public function uninstallBridge();
 
 }
