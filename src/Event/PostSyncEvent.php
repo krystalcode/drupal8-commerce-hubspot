@@ -9,6 +9,9 @@ use Symfony\Component\EventDispatcher\Event;
 /**
  * Event that gets dispatched when an entity has finished syncing with Hubspot.
  *
+ * This is where you would associate contacts for a deal/save the remote ID on
+ * the entity etc.
+ *
  * @package Drupal\commerce_hubspot\Event
  */
 class PostSyncEvent extends Event {

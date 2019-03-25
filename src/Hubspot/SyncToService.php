@@ -217,15 +217,7 @@ class SyncToService implements SyncToServiceInterface {
 
     // If we were successful, return the remote ID.
     if ($response->getStatusCode() == 200) {
-      $deal_id = $response->getData()->dealId;
-
-      // Now create a contact association with the order customer on Hubspot.
-      $contact_id = $this->entity->getCustomer()->get('field_hubspot_remote_id')->getValue()
-        ? $this->entity->getCustomer()->get('field_hubspot_remote_id')->getValue()[0]['value']
-        : '';
-      $deals->associateWithContact($deal_id, $contact_id);
-
-      return $deal_id;
+      return $response->getData()->dealId;
     }
 
     return FALSE;
