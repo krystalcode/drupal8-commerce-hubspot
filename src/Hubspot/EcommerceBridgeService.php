@@ -275,14 +275,9 @@ class EcommerceBridgeService implements ECommerceBridgeServiceInterface {
     return [
       'properties' => [
         [
-          'propertyName' => 'commerce_order.field_hubspot_remote_id',
-          'dataType' => 'STRING',
-          'targetHubspotProperty' => 'hs_assoc__deal_id',
-        ],
-        [
           'propertyName' => 'commerce_product_variation.field_hubspot_remote_id',
           'dataType' => 'STRING',
-          'targetHubspotProperty' => 'hs_assoc__product_id',
+          'targetHubspotProperty' => 'hs_product_id',
         ],
         [
           'propertyName' => 'commerce_order_item.quantity',
