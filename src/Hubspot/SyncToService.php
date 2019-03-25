@@ -121,7 +121,7 @@ class SyncToService implements SyncToServiceInterface {
     }
 
     // Prepare the paylaod to send to Hubspot.
-    $hubspot_field_properties = $this->preparePayload($field_mapping);
+    $hubspot_field_properties = $this->preparePayload($entity_mapping['type'], $field_mapping);
     if (empty($hubspot_field_properties)) {
       return;
     }
@@ -134,21 +134,24 @@ class SyncToService implements SyncToServiceInterface {
   /**
    * Prepare the payload for syncing the properties.
    *
+   * @param string $entity_type
+   *   The entity type we're trying to sync.
    * @param array $field_mapping
    *   The array of fields that should be mapped.
    *
    * @return mixed
    *   An array of Hubspot properties with their values.
    */
-  protected function preparePayload(array $field_mapping) {
+  protected function preparePayload($entity_type, array $field_mapping) {
     $hubspot_field_properties = [];
     foreach ($field_mapping as $drupal_field_name => $hubspot_field) {
       if (!$hubspot_field['status']) {
         return;
       }
 
+      $field_index = $entity_type == 'Contact' ? 'property' : 'name';
       $hubspot_field_properties[] = [
-        'property' => $drupal_field_name,
+        $field_index => $hubspot_field['id'],
         'value' => $hubspot_field['value'],
       ];
     }
@@ -182,9 +185,7 @@ class SyncToService implements SyncToServiceInterface {
 
     // If we were successful, return the remote ID.
     if ($response->getStatusCode() == 200) {
-      $body = $response->getBody();
-
-      return $body['vid'];
+      return $response->getData()->vid;
     }
 
     return FALSE;
@@ -216,9 +217,15 @@ class SyncToService implements SyncToServiceInterface {
 
     // If we were successful, return the remote ID.
     if ($response->getStatusCode() == 200) {
-      $body = $response->getBody();
+      $deal_id = $response->getData()->dealId;
 
-      return $body['dealId'];
+      // Now create a contact association with the order customer on Hubspot.
+      $contact_id = $this->entity->getCustomer()->get('field_hubspot_remote_id')->getValue()
+        ? $this->entity->getCustomer()->get('field_hubspot_remote_id')->getValue()[0]['value']
+        : '';
+      $deals->associateWithContact($deal_id, $contact_id);
+
+      return $deal_id;
     }
 
     return FALSE;
@@ -249,9 +256,7 @@ class SyncToService implements SyncToServiceInterface {
 
     // If we were successful, return the remote ID.
     if ($response->getStatusCode() == 200) {
-      $body = $response->getBody();
-
-      return $body['objectId'];
+      return $response->getData()->objectId;
     }
 
     return FALSE;
@@ -282,9 +287,7 @@ class SyncToService implements SyncToServiceInterface {
 
     // If we were successful, return the remote ID.
     if ($response->getStatusCode() == 200) {
-      $body = $response->getBody();
-
-      return $body['objectId'];
+      return $response->getData()->objectId;
     }
 
     return FALSE;

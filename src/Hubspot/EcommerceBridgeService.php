@@ -219,16 +219,6 @@ class EcommerceBridgeService implements ECommerceBridgeServiceInterface {
           'targetHubspotProperty' => 'dealname',
         ],
         [
-          'propertyName' => 'commerce_order.number',
-          'dataType' => 'STRING',
-          'targetHubspotProperty' => 'ip__ecomm_bridge__order_number',
-        ],
-        [
-          'propertyName' => 'commerce_order.id',
-          'dataType' => 'STRING',
-          'targetHubspotProperty' => 'hs_object_id',
-        ],
-        [
           'propertyName' => 'commerce_order.total',
           'dataType' => 'NUMBER',
           'targetHubspotProperty' => 'amount',
@@ -243,11 +233,6 @@ class EcommerceBridgeService implements ECommerceBridgeServiceInterface {
           'dataType' => 'STRING',
           'targetHubspotProperty' => 'closedate',
         ],
-        [
-          'propertyName' => 'commerce_order.owner.id',
-          'dataType' => 'NUMBER',
-          'targetHubspotProperty' => 'hubspot_owner_id	',
-        ],
       ],
     ];
   }
@@ -261,11 +246,11 @@ class EcommerceBridgeService implements ECommerceBridgeServiceInterface {
   protected function getProductPropertyMappings() {
     return [
       'properties' => [
-        /*[
+        [
           'propertyName' => 'commerce_product_variation.id',
           'dataType' => 'NUMBER',
           'targetHubspotProperty' => 'hs_product_id',
-        ],*/
+        ],
         [
           'propertyName' => 'commerce_product_variation.title',
           'dataType' => 'STRING',
@@ -338,14 +323,9 @@ class EcommerceBridgeService implements ECommerceBridgeServiceInterface {
           'targetHubspotProperty' => 'lastname',
         ],
         [
-          'propertyName' => 'commerce_order.billing_address.address_line1',
+          'propertyName' => 'commerce_order.billing_address.address_line',
           'dataType' => 'STRING',
-          'targetHubspotProperty' => 'address_1',
-        ],
-        [
-          'propertyName' => 'commerce_order.billing_address.address_line2',
-          'dataType' => 'STRING',
-          'targetHubspotProperty' => 'address_2',
+          'targetHubspotProperty' => 'address',
         ],
         [
           'propertyName' => 'commerce_order.billing_address.locality',

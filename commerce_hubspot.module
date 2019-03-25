@@ -6,6 +6,7 @@
  */
 
 use Drupal\commerce_hubspot\Event\SyncEntityTypesEvent;
+
 use Drupal\Core\Routing\RouteMatchInterface;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Form\FormStateInterface;
@@ -37,9 +38,9 @@ function commerce_hubspot_help($route_name, RouteMatchInterface $route_match) {
  */
 function commerce_hubspot_entity_update(EntityInterface $entity) {
   $entities_to_sync = [
-    'order',
-    'order_item',
-    'product_variation',
+    'commerce_order',
+    'commerce_order_item',
+    'commerce_product_variation',
     'profile',
     'user'
   ];
