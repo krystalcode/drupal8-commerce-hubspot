@@ -93,9 +93,13 @@ function commerce_hubspot_form_hubspot_api_settings_alter(&$form, FormStateInter
 function commerce_hubspot_api_settings_form_submit(array &$form, FormStateInterface $form_state) {
   // If the bridge was previously installed, and the checkbox is unchecked now
   // uninstall the bridge.
-  $install_bridge = $form_state->getValue('install_bridge');
   $config = \Drupal::service('config.factory')->getEditable('hubspot_api.settings');
 
+  if (!$config->get('access_key')) {
+    return;
+  }
+
+  $install_bridge = $form_state->getValue('install_bridge');
   if (!$install_bridge && $config->get('install_bridge')) {
     \Drupal::service('commerce_hubspot.ecommerce_bridge')->uninstallBridge();
   }
