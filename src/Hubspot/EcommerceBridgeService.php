@@ -3,13 +3,18 @@
 namespace Drupal\commerce_hubspot\Hubspot;
 
 use Drupal\commerce_hubspot\Event\BuildCommerceBridgeEvent;
+use Drupal\commerce_hubspot\Event\CreateCommercePropertiesEvent;
 use Drupal\hubspot_api\Manager;
 
 use Drupal\Core\Logger\LoggerChannelFactoryInterface;
 use Drupal\Core\Messenger\MessengerInterface;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
 
+use SevenShores\Hubspot\Resources\ContactProperties;
+use SevenShores\Hubspot\Resources\DealProperties;
 use SevenShores\Hubspot\Resources\EcommerceBridge;
+use SevenShores\Hubspot\Resources\LineItemProperties;
+use SevenShores\Hubspot\Resources\ProductProperties;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 /**
@@ -96,8 +101,9 @@ class EcommerceBridgeService implements ECommerceBridgeServiceInterface {
       // Install the eCommerce bridge.
       $this->installEcommerceBridge();
 
-      // TODO: Create the necessary Commerce fields that we need on Hubspot.
-      // We first need to add the Product and LineItem resources in the SDK.
+      // Now, create the necessary commerce properties on Hubspot for each
+      // entity.
+      $this->createCommerceProperties();
 
       // Enable the eCommerce bridge.
       $this->enableEcommerceBridge();
@@ -111,6 +117,42 @@ class EcommerceBridgeService implements ECommerceBridgeServiceInterface {
       ]));
 
       $this->messenger->addError($this->t('An error occurred while trying to install the Hubspot eCommerce bridge.'));
+    }
+  }
+
+  /**
+   * Create the necessary commerce properties on Hubspot.
+   */
+  public function createCommerceProperties() {
+    $properties = [];
+
+    // Dispatch an event to allow other modules to add to the properties.
+    $event = new CreateCommercePropertiesEvent($properties);
+    $this->eventDispatcher->dispatch(CreateCommercePropertiesEvent::EVENT_NAME, $event);
+
+    foreach ($properties as $entity_type => $properties_array) {
+      switch ($entity_type) {
+        case 'contacts':
+          $property_api = new ContactProperties($this->client);
+          break;
+
+        case 'deals':
+          $property_api = new DealProperties($this->client);
+          break;
+
+        case 'products':
+          $property_api = new ProductProperties($this->client);
+          break;
+
+        case 'line_items':
+          $property_api = new LineItemProperties($this->client);
+          break;
+      }
+
+      // Create each property on Hubspot.
+      foreach ($properties_array as $property) {
+        $property_api->create($property);
+      }
     }
   }
 
@@ -167,10 +209,10 @@ class EcommerceBridgeService implements ECommerceBridgeServiceInterface {
     $settings = [
       'enabled' => TRUE,
       'importOnInstall' => TRUE,
+      'contactSyncSettings' => $this->getContactPropertyMappings(),
       'dealSyncSettings' => $this->getDealPropertyMappings(),
       'productSyncSettings' => $this->getProductPropertyMappings(),
       'lineItemSyncSettings' => $this->getLineItemPropertyMappings(),
-      'contactSyncSettings' => $this->getContactPropertyMappings(),
     ];
     // Dispatch an event to allow other modules to modify the settings.
     $event = new BuildCommerceBridgeEvent($settings);
@@ -195,7 +237,7 @@ class EcommerceBridgeService implements ECommerceBridgeServiceInterface {
   }
 
   /**
-   * Set up mappings for the deal properties.
+   * Set up mappings for the default deal properties.
    *
    * @return array
    *   An array of properties.
@@ -238,7 +280,7 @@ class EcommerceBridgeService implements ECommerceBridgeServiceInterface {
   }
 
   /**
-   * Set up mappings for the product properties.
+   * Set up mappings for the default product properties.
    *
    * @return array
    *   An array of properties.
@@ -249,7 +291,7 @@ class EcommerceBridgeService implements ECommerceBridgeServiceInterface {
         [
           'propertyName' => 'commerce_product_variation.id',
           'dataType' => 'NUMBER',
-          'targetHubspotProperty' => 'hs_product_id',
+          'targetHubspotProperty' => 'item_id',
         ],
         [
           'propertyName' => 'commerce_product_variation.title',
@@ -266,7 +308,7 @@ class EcommerceBridgeService implements ECommerceBridgeServiceInterface {
   }
 
   /**
-   * Set up mappings for the line item properties.
+   * Set up mappings for the default line item properties.
    *
    * @return array
    *   An array of properties.
@@ -294,7 +336,7 @@ class EcommerceBridgeService implements ECommerceBridgeServiceInterface {
   }
 
   /**
-   * Set up mappings for the contact properties.
+   * Set up mappings for the default contact properties.
    *
    * @return array
    *   An array of properties.
