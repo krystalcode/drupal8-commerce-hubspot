@@ -124,11 +124,10 @@ class EcommerceBridgeService implements ECommerceBridgeServiceInterface {
    * Create the necessary commerce properties on Hubspot.
    */
   public function createCommerceProperties() {
-    $properties = [];
-
     // Dispatch an event to allow other modules to add to the properties.
-    $event = new CreateCommercePropertiesEvent($properties);
+    $event = new CreateCommercePropertiesEvent([]);
     $this->eventDispatcher->dispatch(CreateCommercePropertiesEvent::EVENT_NAME, $event);
+    $properties = $event->getCommerceProperties();
 
     foreach ($properties as $entity_type => $properties_array) {
       switch ($entity_type) {
