@@ -10,10 +10,7 @@ use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Logger\LoggerChannelFactoryInterface;
 
-use SevenShores\Hubspot\Resources\Contacts;
-use SevenShores\Hubspot\Resources\Deals;
-use SevenShores\Hubspot\Resources\Products;
-use SevenShores\Hubspot\Resources\LineItems;
+use SevenShores\Hubspot\Resources\EcommerceBridge;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 /**
@@ -121,67 +118,70 @@ class SyncToService implements SyncToServiceInterface {
     }
 
     // Prepare the paylaod to send to Hubspot.
-    $hubspot_field_properties = $this->preparePayload($entity_mapping['type'], $field_mapping);
-    if (empty($hubspot_field_properties)) {
+    $hubspot_payload = $this->preparePayload(
+      $field_mapping,
+      $entity_mapping['id']
+    );
+    if (empty($hubspot_payload)) {
       return;
     }
 
     // Now, do the actual syncing depending on the entity type.
     $function_name = 'sync' . $entity_mapping['type'];
-    return $this->$function_name($hubspot_field_properties, $entity_mapping['id']);
+
+    return $this->$function_name($hubspot_payload);
   }
 
   /**
    * Prepare the payload for syncing the properties.
    *
-   * @param string $entity_type
-   *   The entity type we're trying to sync.
    * @param array $field_mapping
    *   The array of fields that should be mapped.
+   * @param int $entity_id
+   *   The user ID if the contact has already been synced to Hubspot.
    *
    * @return mixed
-   *   An array of Hubspot properties with their values.
+   *   An array of Hubspot associations and properties with their values.
    */
-  protected function preparePayload($entity_type, array $field_mapping) {
+  protected function preparePayload(array $field_mapping, $entity_id = NULL) {
     $hubspot_field_properties = [];
-    foreach ($field_mapping as $drupal_field_name => $hubspot_field) {
+    foreach ($field_mapping['properties'] as $drupal_field_name => $hubspot_field) {
       if (!$hubspot_field['status']) {
         return;
       }
 
-      $field_index = $entity_type == 'Contact' ? 'property' : 'name';
-      $hubspot_field_properties[] = [
-        $field_index => $hubspot_field['id'],
-        'value' => $hubspot_field['value'],
-      ];
+      $hubspot_field_properties[$drupal_field_name] = $hubspot_field['value'];
     }
 
-    return $hubspot_field_properties;
+    // Construct the payload array.
+    $hubspot_payload = [
+      [
+        'integratorObjectId' => $entity_id,
+        'action' => 'UPSERT',
+        'changeOccurredTimestamp' => REQUEST_TIME,
+        'propertyNameToValues' => $hubspot_field_properties,
+        'associations' => $field_mapping['associations'],
+      ],
+    ];
+
+    return $hubspot_payload;
   }
 
   /**
    * Syncs the contact details with Hubspot.
    *
-   * @param array $hubspot_field_properties
-   *   An array of Hubspot properties with their values.
-   * @param int $hubspot_entity_id
-   *   The Hubspot contact ID if the contact has already been synced to Hubspot.
+   * @param array $hubspot_payload
+   *   An array of Hubspot sync message properties.
    *
    * @return bool|string
    *   The remote ID. False otherwise.
    *
    * @throws \Exception
    */
-  protected function syncContact(array $hubspot_field_properties, $hubspot_entity_id = NULL) {
-    $contacts = new Contacts($this->client);
+  protected function syncContact(array $hubspot_payload) {
+    $bridge = new EcommerceBridge($this->client);
 
-    // Create the contact if it hasn't been synced yet.
-    if (!$hubspot_entity_id) {
-      $response = $contacts->create($hubspot_field_properties);
-    }
-    else {
-      $response = $contacts->update($hubspot_entity_id, $hubspot_field_properties);
-    }
+    $response = $bridge->sendSyncMessages('CONTACT', $hubspot_payload);
 
     // If we were successful, return the remote ID.
     if ($response->getStatusCode() == 200) {
@@ -194,26 +194,18 @@ class SyncToService implements SyncToServiceInterface {
   /**
    * Syncs the order details with Hubspot.
    *
-   * @param array $hubspot_field_properties
-   *   An array of Hubspot properties with their values.
-   * @param int $hubspot_entity_id
-   *   The Hubspot deal ID if the deal has already been synced to Hubspot.
+   * @param array $hubspot_payload
+   *   An array of Hubspot sync message properties.
    *
    * @return bool|string
    *   The remote ID. False otherwise.
    *
    * @throws \Exception
    */
-  protected function syncDeal(array $hubspot_field_properties, $hubspot_entity_id = NULL) {
-    $deals = new Deals($this->client);
+  protected function syncDeal(array $hubspot_payload) {
+    $bridge = new EcommerceBridge($this->client);
 
-    // Create the deal if it hasn't been synced yet.
-    if (!$hubspot_entity_id) {
-      $response = $deals->create($hubspot_field_properties);
-    }
-    else {
-      $response = $deals->update($hubspot_entity_id, $hubspot_field_properties);
-    }
+    $response = $bridge->sendSyncMessages('DEAL', $hubspot_payload);
 
     // If we were successful, return the remote ID.
     if ($response->getStatusCode() == 200) {
@@ -226,25 +218,18 @@ class SyncToService implements SyncToServiceInterface {
   /**
    * Syncs the product variation details with Hubspot.
    *
-   * @param array $hubspot_field_properties
-   *   An array of Hubspot properties with their values.
-   * @param int $hubspot_entity_id
-   *   The Hubspot deal ID if the deal has already been synced to Hubspot.
+   * @param array $hubspot_payload
+   *   An array of Hubspot sync message properties.
    *
    * @return bool|string
    *   The remote ID. False otherwise.
+   *
+   * @throws \Exception
    */
-  protected function syncProduct(array $hubspot_field_properties, $hubspot_entity_id = NULL) {
-    // TODO: Create the API on the SDK first.
-    $products = new Products($this->client);
+  protected function syncProduct(array $hubspot_payload) {
+    $bridge = new EcommerceBridge($this->client);
 
-    // Create the product if it hasn't been synced yet.
-    if (!$hubspot_entity_id) {
-      $response = $products->create($hubspot_field_properties);
-    }
-    else {
-      $response = $products->update($hubspot_entity_id, $hubspot_field_properties);
-    }
+    $response = $bridge->sendSyncMessages('PRODUCT', $hubspot_payload);
 
     // If we were successful, return the remote ID.
     if ($response->getStatusCode() == 200) {
@@ -257,25 +242,18 @@ class SyncToService implements SyncToServiceInterface {
   /**
    * Syncs the line item details with Hubspot.
    *
-   * @param array $hubspot_field_properties
-   *   An array of Hubspot properties with their values.
-   * @param int $hubspot_entity_id
-   *   The Hubspot deal ID if the deal has already been synced to Hubspot.
+   * @param array $hubspot_payload
+   *   An array of Hubspot sync message properties.
    *
    * @return bool|string
    *   The remote ID. False otherwise.
+   *
+   * @throws \Exception
    */
-  protected function syncLineItem(array $hubspot_field_properties, $hubspot_entity_id = NULL) {
-    // TODO: Create the API on the SDK first.
-    $line_items = new LineItems($this->client);
+  protected function syncLineItem(array $hubspot_payload) {
+    $bridge = new EcommerceBridge($this->client);
 
-    // Create the line item if it hasn't been synced yet.
-    if (!$hubspot_entity_id) {
-      $response = $line_items->create($hubspot_field_properties);
-    }
-    else {
-      $response = $line_items->update($hubspot_entity_id, $hubspot_field_properties);
-    }
+    $response = $bridge->sendSyncMessages('LINE_ITEM', $hubspot_payload);
 
     // If we were successful, return the remote ID.
     if ($response->getStatusCode() == 200) {
