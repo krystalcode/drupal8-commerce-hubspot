@@ -160,7 +160,7 @@ class SyncToService implements SyncToServiceInterface {
         'action' => 'UPSERT',
         'changeOccurredTimestamp' => REQUEST_TIME,
         'propertyNameToValues' => $hubspot_field_properties,
-        'associations' => $field_mapping['associations'],
+        'associations' => isset($field_mapping['associations']) ?: [],
       ],
     ];
 

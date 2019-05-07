@@ -216,6 +216,7 @@ class EcommerceBridgeService implements ECommerceBridgeServiceInterface {
     // Dispatch an event to allow other modules to modify the settings.
     $event = new BuildCommerceBridgeEvent($settings);
     $this->eventDispatcher->dispatch(BuildCommerceBridgeEvent::EVENT_NAME, $event);
+    $settings = $event->getEcommerceBridgeSettings();
 
     // Now, make our request to enable the eCommerce bridge.
     $response = $this->eCommerceBridge->upsertSettings($settings);
