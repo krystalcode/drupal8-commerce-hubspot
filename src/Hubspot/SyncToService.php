@@ -9,7 +9,9 @@ use Drupal\hubspot_api\Manager;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Logger\LoggerChannelFactoryInterface;
+use Drupal\Core\StringTranslation\StringTranslationTrait;
 
+use Exception;
 use SevenShores\Hubspot\Resources\EcommerceBridge;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
@@ -21,6 +23,8 @@ use Symfony\Component\EventDispatcher\EventDispatcherInterface;
  * @package Drupal\commerce_hubspot
  */
 class SyncToService implements SyncToServiceInterface {
+
+  use StringTranslationTrait;
 
   /**
    * The entity type manager.
@@ -179,13 +183,22 @@ class SyncToService implements SyncToServiceInterface {
    * @throws \Exception
    */
   protected function syncContact(array $hubspot_payload) {
-    $bridge = new EcommerceBridge($this->client);
+    try {
+      $bridge = new EcommerceBridge($this->client);
+      $response = $bridge->sendSyncMessages('CONTACT', $hubspot_payload);
 
-    $response = $bridge->sendSyncMessages('CONTACT', $hubspot_payload);
-
-    // If we were successful, return the remote ID.
-    if ($response->getStatusCode() == 200) {
-      return $response->getData()->vid;
+      // If we were successful, return the remote ID.
+      if ($response->getStatusCode() == 200) {
+        return $response->getData()->vid;
+      }
+    }
+    catch (Exception $e) {
+      $this->logger->error(
+        $this->t('An error occurred while trying to sync a contact to Hubspot. The payload is: @payload. The error was: @error', [
+          '@payload' => var_export($hubspot_payload),
+          '@error' => $e->getMessage(),
+        ]
+      ));
     }
 
     return FALSE;
@@ -203,13 +216,23 @@ class SyncToService implements SyncToServiceInterface {
    * @throws \Exception
    */
   protected function syncDeal(array $hubspot_payload) {
-    $bridge = new EcommerceBridge($this->client);
+    try {
+      $bridge = new EcommerceBridge($this->client);
 
-    $response = $bridge->sendSyncMessages('DEAL', $hubspot_payload);
+      $response = $bridge->sendSyncMessages('DEAL', $hubspot_payload);
 
-    // If we were successful, return the remote ID.
-    if ($response->getStatusCode() == 200) {
-      return $response->getData()->dealId;
+      // If we were successful, return the remote ID.
+      if ($response->getStatusCode() == 200) {
+        return $response->getData()->dealId;
+      }
+    }
+    catch (Exception $e) {
+      $this->logger->error(
+        $this->t('An error occurred while trying to sync a deal to Hubspot. The payload is: @payload. The error was: @error', [
+          '@payload' => var_export($hubspot_payload),
+          '@error' => $e->getMessage(),
+        ]
+      ));
     }
 
     return FALSE;
@@ -227,13 +250,23 @@ class SyncToService implements SyncToServiceInterface {
    * @throws \Exception
    */
   protected function syncProduct(array $hubspot_payload) {
-    $bridge = new EcommerceBridge($this->client);
+    try {
+      $bridge = new EcommerceBridge($this->client);
 
-    $response = $bridge->sendSyncMessages('PRODUCT', $hubspot_payload);
+      $response = $bridge->sendSyncMessages('PRODUCT', $hubspot_payload);
 
-    // If we were successful, return the remote ID.
-    if ($response->getStatusCode() == 200) {
-      return $response->getData()->objectId;
+      // If we were successful, return the remote ID.
+      if ($response->getStatusCode() == 200) {
+        return $response->getData()->objectId;
+      }
+    }
+    catch (Exception $e) {
+      $this->logger->error(
+        $this->t('An error occurred while trying to sync a product to Hubspot. The payload is: @payload. The error was: @error', [
+          '@payload' => var_export($hubspot_payload),
+          '@error' => $e->getMessage(),
+        ]
+      ));
     }
 
     return FALSE;
@@ -251,13 +284,23 @@ class SyncToService implements SyncToServiceInterface {
    * @throws \Exception
    */
   protected function syncLineItem(array $hubspot_payload) {
-    $bridge = new EcommerceBridge($this->client);
+    try {
+      $bridge = new EcommerceBridge($this->client);
 
-    $response = $bridge->sendSyncMessages('LINE_ITEM', $hubspot_payload);
+      $response = $bridge->sendSyncMessages('LINE_ITEM', $hubspot_payload);
 
-    // If we were successful, return the remote ID.
-    if ($response->getStatusCode() == 200) {
-      return $response->getData()->objectId;
+      // If we were successful, return the remote ID.
+      if ($response->getStatusCode() == 200) {
+        return $response->getData()->objectId;
+      }
+    }
+    catch (Exception $e) {
+      $this->logger->error(
+        $this->t('An error occurred while trying to sync a line item to Hubspot. The payload is: @payload. The error was: @error', [
+          '@payload' => var_export($hubspot_payload),
+          '@error' => $e->getMessage(),
+        ]
+      ));
     }
 
     return FALSE;
