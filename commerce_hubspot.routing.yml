@@ -1,0 +1,7 @@
+commerce_hubspot.webhook:
+  path: '/commerce-hubspot/webhook'
+  defaults:
+    _controller: '\Drupal\commerce_hubspot\Controller\HubspotWebhookController::capture'
+    _title: 'Hubspot Webhook Controller'
+  requirements:
+    _custom_access: '\Drupal\commerce_hubspot\Controller\HubspotWebhookController::access'
