@@ -49,15 +49,17 @@ function commerce_hubspot_entity_update(EntityInterface $entity) {
   $event = new SyncEntityTypesEvent($entity, $entities_to_sync);
   $event_dispatcher = \Drupal::service('event_dispatcher');
   $event_dispatcher->dispatch(SyncEntityTypesEvent::EVENT_NAME, $event);
+  $entities_to_sync = $event->getEntitiesToSync();
 
-  if (!in_array($entity->getEntityType()->id(), $entities_to_sync)) {
+  $entity_type_id = $entity->getEntityTypeId();
+  if (!in_array($entity_type_id, $entities_to_sync)) {
     return;
   }
-
+  
   $queue_factory = \Drupal::service('queue');
   $queue = $queue_factory->get('commerce_hubspot_entity_sync_to');
   $queue->createItem([
-    'entity_type' => $entity->getEntityType()->id(),
+    'entity_type' => $entity_type_id,
     'entity_id' => $entity->id(),
   ]);
 }
