@@ -5,6 +5,7 @@
   "license": "GPL-2.0+",
   "minimum-stability": "dev",
   "require": {
-    "drupal/hubspot_api" : "^1.0"
+    "drupal/hubspot_api" : "^1.0",
+    "ryanwinchester/hubspot-php": "^1.1"
   }
 }
