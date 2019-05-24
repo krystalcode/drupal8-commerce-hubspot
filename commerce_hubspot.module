@@ -14,6 +14,35 @@ use Drupal\Core\Form\FormStateInterface;
 const COMMERCE_HUBSPOT_LOGGER_CHANNEL = 'commerce_hubspot';
 
 /**
+ * Implements hook_cron().
+ */
+function commerce_hubspot_cron() {
+  // Fetch the current time.
+  $current_time = REQUEST_TIME;
+  // Fetch the last synced time (convert to milliseconds as Hubspot does).
+  $last_synced = \Drupal::state()->get('commerce_hubspot.last_synced_from_time');
+  $last_synced = !empty($last_synced) ? $last_synced * 1000 : $last_synced;
+
+  // TODO: Allow syncing of other entities.
+
+  // Fetch contacts on Hubspot that have been updated since our last sync.
+  $service = \Drupal::service('commerce_hubspot.sync_from');
+  $updated_contacts = $service->fetchUpdatedContacts($last_synced);
+
+  if (!$updated_contacts) {
+    return;
+  }
+
+  // Go through each Hubspot contact and sync it.
+  foreach ($updated_contacts as $email => $contact) {
+    $service->sync($contact);
+  }
+
+  // Finally save the last synced time in the state.
+  \Drupal::state()->set('commerce_hubspot.last_synced_from_time', $current_time);
+}
+
+/**
  * Implements hook_help().
  */
 function commerce_hubspot_help($route_name, RouteMatchInterface $route_match) {
@@ -55,7 +84,17 @@ function commerce_hubspot_entity_update(EntityInterface $entity) {
   if (!in_array($entity_type_id, $entities_to_sync)) {
     return;
   }
-  
+
+  // If the field_hubspot_lastmodifieddate of the original entity is
+  // different than that of the updated entity then we're doing a HubSpot to
+  // Drupal sync; do not dispatch the event that updates the entity on HubSpot
+  // so that we don't get stuck in a loop.
+  $original_entity = \Drupal::entityTypeManager()->getStorage($entity_type_id)->loadUnchanged($entity->id());
+  if ($entity->hasField('field_hubspot_lastmodifieddate')
+    && $entity->get('field_hubspot_lastmodifieddate')->value != $original_entity->get('field_hubspot_lastmodifieddate')->value) {
+    return;
+  }
+
   $queue_factory = \Drupal::service('queue');
   $queue = $queue_factory->get('commerce_hubspot_entity_sync_to');
   $queue->createItem([
