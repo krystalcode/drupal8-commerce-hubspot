@@ -85,13 +85,13 @@ function commerce_hubspot_entity_update(EntityInterface $entity) {
     return;
   }
 
-  // If the field_hubspot_lastmodifieddate of the original entity is
-  // different than that of the updated entity then we're doing a HubSpot to
-  // Drupal sync; do not dispatch the event that updates the entity on HubSpot
-  // so that we don't get stuck in a loop.
+  // If the hubspot_lastmodifieddate of the original entity is different than
+  // that of the updated entity then we're doing a HubSpot to Drupal sync; do
+  // not dispatch the event that updates the entity on HubSpot so that we don't
+  // get stuck in a loop.
   $original_entity = \Drupal::entityTypeManager()->getStorage($entity_type_id)->loadUnchanged($entity->id());
-  if ($entity->hasField('field_hubspot_lastmodifieddate')
-    && $entity->get('field_hubspot_lastmodifieddate')->value != $original_entity->get('field_hubspot_lastmodifieddate')->value) {
+  if ($entity->hasField('hubspot_lastmodifieddate')
+    && $entity->get('hubspot_lastmodifieddate')->value != $original_entity->get('hubspot_lastmodifieddate')->value) {
     return;
   }
 
