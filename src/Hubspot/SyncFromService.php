@@ -141,8 +141,8 @@ class SyncFromService implements SyncFromServiceInterface {
     }
     catch (Exception $e) {
       $this->logger->error(
-        $this->t('An error occurred while syncing from Hubspot to Drupal. The hubspot entity is: @id. The error was: @error', [
-            '@hubspot_entity' => $this->hubspotEntity->vid,
+        $this->t('An error occurred while syncing from Hubspot to Drupal. The hubspot entity is: @hubspot_entity. The error was: @error', [
+            '@hubspot_entity' => json_decode(json_encode($this->hubspotEntity), true),
             '@error' => $e->getMessage(),
           ]
         ));
