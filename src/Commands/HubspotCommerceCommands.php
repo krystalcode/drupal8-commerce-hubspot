@@ -2,6 +2,7 @@
 
 namespace Drupal\commerce_hubspot\Commands;
 
+use Drupal\commerce_hubspot\Hubspot\ECommerceBridgeServiceInterface;
 use Drupal\commerce_hubspot\Hubspot\SyncToServiceInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drush\Commands\DrushCommands;
@@ -23,13 +24,32 @@ class HubspotCommerceCommands extends DrushCommands {
   protected $syncToService;
 
   /**
+   * @var \Drupal\commerce_hubspot\Hubspot\ECommerceBridgeServiceInterface;
+   */
+  protected $ecommerceBridgeService;
+
+  /**
    * SimplesitemapCommands constructor.
    * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entity_type_manager
    * @param \Drupal\commerce_hubspot\Hubspot\SyncToServiceInterface $sync_to_service
+   * @param \Drupal\commerce_hubspot\Hubspot\ECommerceBridgeServiceInterface $ecommerce_bridge_service
    */
-  public function __construct(EntityTypeManagerInterface $entity_type_manager, SyncToServiceInterface $sync_to_service) {
+  public function __construct(EntityTypeManagerInterface $entity_type_manager, SyncToServiceInterface $sync_to_service, ECommerceBridgeServiceInterface $ecommerce_bridge_service) {
     $this->entityTypeManager = $entity_type_manager;
     $this->syncToService = $sync_to_service;
+    $this->ecommerceBridgeService = $ecommerce_bridge_service;
+  }
+
+  /**
+   * Installs or updates Hupsot Ecommerce Bridge.
+   *
+   * @command commerce-hubspot:upsert-bridge
+   * @validate-module-enabled commerce_hubspot
+   * @aliases ch:upsertb
+   */
+  public function upsertBridge() {
+    $this->ecommerceBridgeService->installBridge();
+    $this->logger()->info('Ecommerce Bridge was installed/updated successfully.');
   }
 
   /**
@@ -42,7 +62,7 @@ class HubspotCommerceCommands extends DrushCommands {
    *
    * @command commerce-hubspot:sync-to
    * @validate-module-enabled commerce_hubspot
-   * @aliases ca:s
+   * @aliases ch:s
    */
   public function syncTo($entity_type, $entity_id) {
     $entity = $this->entityTypeManager
