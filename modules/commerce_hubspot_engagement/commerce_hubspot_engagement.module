@@ -1,0 +1,33 @@
+<?php
+
+/**
+ * @file
+ * Hooks and functionality for the Commerce Hubspot Engagement module.
+ */
+
+/**
+ * Implements hook_cron().
+ */
+function commerce_hubspot_engagement_cron() {
+  // Fetch the current time.
+  $current_time = REQUEST_TIME;
+  // Fetch the last synced time (convert to milliseconds as Hubspot does).
+  $last_synced = \Drupal::state()->get('commerce_hubspot_engagement.last_synced_from_time');
+  $last_synced = !empty($last_synced) ? $last_synced * 1000 : $last_synced;
+
+  $service = \Drupal::service('commerce_hubspot.sync_from');
+  // Fetch engagements on Hubspot that have been updated since our last sync.
+  $updated_engagements = $service->fetchUpdatedEngagements($last_synced);
+
+  if (!$updated_engagements) {
+    return;
+  }
+
+  // Go through each Hubspot engagement and sync it.
+  foreach ($updated_engagements as $engagement_id => $engagement) {
+    $service->sync($engagement);
+  }
+
+  // Finally save the last synced time in the state.
+  //\Drupal::state()->set('commerce_hubspot_engagement.last_synced_from_time', $current_time);
+}

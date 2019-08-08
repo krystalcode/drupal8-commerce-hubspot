@@ -1,5 +1,5 @@
 name: Commerce Hubspot Engagement
-description: Syncs Commerce Order comments in Drupal with HubSpot engagement notes.
+description: Creates a new Commerce Hubspot Engagement entity to sync with HubSpot engagement notes.
 type: module
 package: Hubspot
 core: '8.x'

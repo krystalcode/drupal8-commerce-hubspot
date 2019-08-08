@@ -1,0 +1,13 @@
+commerce_hubspot_engagement.commerce_hubspot_engagement_type.*:
+  type: config_entity
+  label: 'Engagement Type settings'
+  mapping:
+    id:
+      type: string
+      label: 'Machine-readable name'
+    uuid:
+      type: stype
+      label: 'UUID'
+    label:
+      type: label
+      label: 'Label'

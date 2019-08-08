@@ -7,19 +7,48 @@ use Drupal\Core\Entity\EntityTypeInterface;
 use Drupal\Core\Field\BaseFieldDefinition;
 
 /**
- * Defines the Engagement entity.
+ * Defines the Commerce Hubspot Engagement entity.
  *
- * @ingroup engagement
+ * @ingroup commerce_hubspot_engagement
  *
  * @ContentEntityType(
- *   id = "engagement",
+ *   id = "commerce_hubspot_engagement",
  *   label = @Translation("Engagement"),
- *   base_table = "engagement",
+ *   base_table = "commerce_hubspot_engagement",
  *   entity_keys = {
  *     "id" = "id",
+ *     "bundle" = "type",
  *     "label" = "name",
  *     "uuid" = "uuid",
  *   },
+ *   fieldable = TRUE,
+ *   admin_permission = "administer commerce hubspot engagements",
+ *   handlers = {
+ *     "view_builder" = "Drupal\Core\Entity\EntityViewBuilder",
+ *     "list_builder" = "Drupal\commerce_hubspot_engagement\EngagementListBuilder",
+ *     "access" = "Drupal\Core\Entity\EntityAccessControlHandler",
+ *     "views_data" = "Drupal\views\EntityViewsData",
+ *     "form" = {
+ *       "default" = "Drupal\Core\Entity\ContentEntityForm",
+ *       "add" = "Drupal\Core\Entity\ContentEntityForm",
+ *       "edit" = "Drupal\Core\Entity\ContentEntityForm",
+ *       "delete" = "Drupal\Core\Entity\ContentEntityDeleteForm",
+ *     },
+ *     "route_provider" = {
+ *       "html" = "Drupal\Core\Entity\Routing\AdminHtmlRouteProvider",
+ *     },
+ *   },
+ *   links = {
+ *     "canonical" = "/admin/commerce/engagements/{commerce_hubspot_engagement}",
+ *     "add-page" = "/admin/commerce/engagements/add",
+ *     "add-form" = "/admin/commerce/engagements/add/{commerce_hubspot_engagement_type}",
+ *     "edit-form" = "/admin/commerce/engagements/{commerce_hubspot_engagement}/edit",
+ *     "delete-form" = "/admin/commerce/engagements/{commerce_hubspot_engagement}/delete",
+ *     "delete-multiple-form" = "/admin/commerce/engagements/delete",
+ *     "collection" = "/admin/commerce/engagements"
+ *   },
+ *   bundle_entity_type = "commerce_hubspot_engagement_type",
+ *   field_ui_base_route = "entity.commerce_hubspot_engagement_type.edit_form",
  * )
  */
 class Engagement extends ContentEntityBase implements EngagementInterface {
@@ -42,16 +71,15 @@ class Engagement extends ContentEntityBase implements EngagementInterface {
   /**
    * {@inheritdoc}
    */
-  public function getEngagementType() {
-    return $this->get('engagement_type')->value;
+  public function getOrder() {
+    return $this->get('order_id')->entity;
   }
 
   /**
    * {@inheritdoc}
    */
-  public function setEngagementType($type) {
-    $this->set('engagement_type', $type);
-    return $this;
+  public function getOrderId() {
+    return $this->get('order_id')->target_id;
   }
 
   /**
@@ -145,7 +173,7 @@ class Engagement extends ContentEntityBase implements EngagementInterface {
       ->setLabel(t('Engagement type'))
       ->setSetting('allowed_values_function', ['\Drupal\commerce_hubspot_engagement\Entity\Engagement', 'getEngagementTypes'])
       ->setRequired(TRUE)
-      ->setDefaultValue(self::COMPATIBLE_ANY)
+      ->setDefaultValue(self::ENGAGEMENT_TYPE_NOTE)
       ->setDisplayOptions('form', [
         'type' => 'options_select',
       ]);

@@ -1,0 +1,11 @@
+commerce_hubspot_engagement_entity_action_add:
+  route_name: entity.commerce_hubspot_engagement.add_page
+  title: 'Add Engagement entity'
+  appears_on:
+    - entity.commerce_hubspot_engagement.collection
+
+commerce_hubspot_engagement_type_entity_action_add:
+  route_name: entity.commerce_hubspot_engagement_type.add_form
+  title: 'Add Engagement entity type'
+  appears_on:
+    - entity.commerce_hubspot_engagement_type.collection
