@@ -5,6 +5,7 @@ namespace Drupal\commerce_hubspot_engagement\Entity;
 use Drupal\Core\Entity\ContentEntityBase;
 use Drupal\Core\Entity\EntityTypeInterface;
 use Drupal\Core\Field\BaseFieldDefinition;
+use Drupal\user\UserInterface;
 
 /**
  * Defines the Commerce Hubspot Engagement entity.
@@ -17,8 +18,7 @@ use Drupal\Core\Field\BaseFieldDefinition;
  *   base_table = "commerce_hubspot_engagement",
  *   entity_keys = {
  *     "id" = "id",
- *     "bundle" = "type",
- *     "label" = "name",
+ *     "bundle" = "bundle",
  *     "uuid" = "uuid",
  *   },
  *   fieldable = TRUE,
@@ -56,15 +56,30 @@ class Engagement extends ContentEntityBase implements EngagementInterface {
   /**
    * {@inheritdoc}
    */
-  public function getName() {
-    return $this->get('name')->value;
+  public function getOwner() {
+    return $this->get('uid')->entity;
   }
 
   /**
    * {@inheritdoc}
    */
-  public function setName($name) {
-    $this->set('name', $name);
+  public function getOwnerId() {
+    return $this->get('uid')->target_id;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function setOwnerId($uid) {
+    $this->set('uid', $uid);
+    return $this;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function setOwner(UserInterface $account) {
+    $this->set('uid', $account->id());
     return $this;
   }
 
@@ -142,22 +157,6 @@ class Engagement extends ContentEntityBase implements EngagementInterface {
   public static function baseFieldDefinitions(EntityTypeInterface $entity_type) {
     $fields = parent::baseFieldDefinitions($entity_type);
 
-    $fields['name'] = BaseFieldDefinition::create('string')
-      ->setLabel(t('Name'))
-      ->setDescription(t('The engagement name.'))
-      ->setRequired(TRUE)
-      ->setTranslatable(TRUE)
-      ->setSettings([
-        'default_value' => '',
-        'max_length' => 255,
-      ])
-      ->setDisplayOptions('form', [
-        'type' => 'string_textfield',
-        'weight' => 0,
-      ])
-      ->setDisplayConfigurable('view', TRUE)
-      ->setDisplayConfigurable('form', TRUE);
-
     // The timestamp of when the engagement was created.
     $fields['created'] = BaseFieldDefinition::create('created')
       ->setLabel(t('Created'))
@@ -168,40 +167,56 @@ class Engagement extends ContentEntityBase implements EngagementInterface {
       ->setLabel(t('Changed'))
       ->setDescription(t('The time that the engagement was last edited.'));
 
-    // The engagement type.
-    $fields['engagement_type'] = BaseFieldDefinition::create('list_string')
-      ->setLabel(t('Engagement type'))
-      ->setSetting('allowed_values_function', ['\Drupal\commerce_hubspot_engagement\Entity\Engagement', 'getEngagementTypes'])
+    // The hubspot remote ID populated when syncing.
+    $fields['field_hubspot_remote_id'] = BaseFieldDefinition::create('string')
+      ->setLabel(t('Hubspot Remote ID'))
+      ->setDescription(t('The Hubspot remote ID.'))
+      ->setReadOnly(TRUE);
+
+    // The owner user of the engagement.
+    $fields['uid'] = BaseFieldDefinition::create('entity_reference')
+      ->setLabel(t('User ID'))
+      ->setDescription(t('The user ID of the engagement author.'))
+      ->setTranslatable(TRUE)
+      ->setSetting('target_type', 'user')
+      ->setDefaultValueCallback('Drupal\commerce_order\Entity\Order::getCurrentUserId')
       ->setRequired(TRUE)
-      ->setDefaultValue(self::ENGAGEMENT_TYPE_NOTE)
-      ->setDisplayOptions('form', [
-        'type' => 'options_select',
-      ]);
+      ->setReadOnly(TRUE);
+
+    // The date that the engagement was last updated on Hubspot.
+    $fields['hubspot_lastmodifieddate'] = BaseFieldDefinition::create('changed')
+      ->setLabel(t('Hubspot Last Modified Date'))
+      ->setDescription(t('The timestamp of when the engagement was last modified on Hubspot.'));
+
+    // File attachments uploaded for this engagement.
+    $fields['attachments'] = BaseFieldDefinition::create('file')
+      ->setLabel(t('File Attachments'))
+      ->setDescription(t('Files attached to this engagement.'))
+      ->setSettings([
+        'uri_scheme' => 'private',
+        'file_directory' => 'engagements',
+        'file_extensions' => 'txt pdf doc docx xls xlsx ppt pptx gif png jpg jpeg',
+      ])
+      ->setDisplayOptions('view', array(
+        'label' => 'above',
+        'type' => 'file_default',
+        'weight' => 10,
+      ))
+      ->setDisplayOptions('form', array(
+        'type' => 'file_generic',
+      ))
+      ->setDisplayConfigurable('form', TRUE)
+      ->setDisplayConfigurable('view', TRUE);
 
     // The order backreference, populated by the postSave() function.
     $fields['order_id'] = BaseFieldDefinition::create('entity_reference')
       ->setLabel(t('Order'))
       ->setDescription(t('The parent order.'))
       ->setSetting('target_type', 'commerce_order')
+      ->setRequired(TRUE)
       ->setReadOnly(TRUE);
 
     return $fields;
-  }
-
-  /**
-   * Gets the allowed values for the 'engagement_type' base field.
-   *
-   * @return array
-   *   The allowed values.
-   */
-  public static function getEngagementTypes() {
-    return [
-      self::ENGAGEMENT_TYPE_NOTE => t('Note'),
-      self::ENGAGEMENT_TYPE_EMAIL => t('Email'),
-      self::ENGAGEMENT_TYPE_TASK => t('Task'),
-      self::ENGAGEMENT_TYPE_MEETING => t('Meeting'),
-      self::ENGAGEMENT_TYPE_CALL => t('Call'),
-    ];
   }
 
 }

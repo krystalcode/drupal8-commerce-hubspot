@@ -23,20 +23,8 @@ function commerce_hubspot_cron() {
   $last_synced = \Drupal::state()->get('commerce_hubspot.last_synced_from_time');
   $last_synced = !empty($last_synced) ? $last_synced * 1000 : $last_synced;
 
-  // TODO: Allow syncing of other entities.
-
-  // Fetch contacts on Hubspot that have been updated since our last sync.
-  $service = \Drupal::service('commerce_hubspot.sync_from');
-  $updated_contacts = $service->fetchUpdatedContacts($last_synced);
-
-  if (!$updated_contacts) {
-    return;
-  }
-
-  // Go through each Hubspot contact and sync it.
-  foreach ($updated_contacts as $email => $contact) {
-    $service->sync($contact);
-  }
+  // Sync contacts.
+  _commerce_hubspot_sync_contacts($last_synced);
 
   // Finally save the last synced time in the state.
   \Drupal::state()->set('commerce_hubspot.last_synced_from_time', $current_time);
@@ -153,4 +141,28 @@ function commerce_hubspot_api_settings_form_submit(array &$form, FormStateInterf
   $config
     ->set('install_bridge', $install_bridge)
     ->save();
+}
+
+/**
+ * Sync Hubspot contacts.
+ *
+ * @param int $last_synced
+ *   The timestamp of when we last synced with Hubspot.
+ */
+function _commerce_hubspot_sync_contacts($last_synced) {
+  // Fetch contacts on Hubspot that have been updated since our last sync.
+  $service = \Drupal::service('commerce_hubspot.sync_from');
+  $updated_contacts = $service->fetchUpdatedContacts($last_synced);
+
+  if (!$updated_contacts) {
+    return;
+  }
+
+  // Go through each Hubspot contact and sync it.
+  foreach ($updated_contacts as $email => $contact) {
+    $service->sync([
+      'entity_type' => 'contact',
+      'entity' => $contact,
+    ]);
+  }
 }

@@ -6,6 +6,7 @@ use Drupal\commerce_hubspot\Hubspot\SyncFromService;
 
 use Exception;
 use SevenShores\Hubspot\Resources\Engagements;
+use SevenShores\Hubspot\Resources\Owners;
 
 /**
  * Class SyncFromServiceEngagement.
@@ -15,6 +16,35 @@ use SevenShores\Hubspot\Resources\Engagements;
  * @package Drupal\commerce_hubspot_engagement\Hubspot
  */
 class SyncFromServiceEngagement extends SyncFromService implements SyncFromServiceEngagementInterface {
+
+  /**
+   * {@inheritDoc}
+   */
+  public function fetchUpdatedOwners() {
+    try {
+      $owners_api = new Owners($this->client);
+      $response = $owners_api->all();
+
+      // If we were successful, return the array of owners.
+      $owners = [];
+      if ($response->getStatusCode() == 200) {
+        foreach ($response->getData() as $owner) {
+          $owners[$owner->email] = $owner;
+        }
+
+        return $owners;
+      }
+    }
+    catch (Exception $e) {
+      $this->logger->error(
+        $this->t('An error occurred while trying to get the owners from Hubspot. The error was: @error', [
+            '@error' => $e->getMessage(),
+          ]
+        ));
+    }
+
+    return FALSE;
+  }
 
   /**
    * {@inheritDoc}

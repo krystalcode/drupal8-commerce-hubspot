@@ -11,7 +11,6 @@ use Drupal\Core\StringTranslation\StringTranslationTrait;
 
 use Exception;
 use SevenShores\Hubspot\Resources\Contacts;
-use stdClass;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 /**
@@ -45,13 +44,6 @@ class SyncFromService implements SyncFromServiceInterface {
    * @var \SevenShores\Hubspot\Http\Client
    */
   protected $client;
-
-  /**
-   * The entity from Hubspot.
-   *
-   * @var array
-   */
-  protected $hubspotEntity;
 
   /**
    * An event dispatcher instance.
@@ -131,18 +123,17 @@ class SyncFromService implements SyncFromServiceInterface {
   /**
    * {@inheritdoc}
    */
-  public function sync(stdClass $hubspot_entity) {
-    $this->hubspotEntity = $hubspot_entity;
-
+  public function sync(array $hubspot_entity) {
     // Dispatch an event to allow modules to update and save this entity.
     try {
-      $event = new SyncFromEntityUpdateEvent($this->hubspotEntity);
+      $event = new SyncFromEntityUpdateEvent($hubspot_entity);
       $this->eventDispatcher->dispatch(SyncFromEntityUpdateEvent::EVENT_NAME, $event);
     }
     catch (Exception $e) {
       $this->logger->error(
-        $this->t('An error occurred while syncing from Hubspot to Drupal. The hubspot entity is: @hubspot_entity. The error was: @error', [
-            '@hubspot_entity' => json_decode(json_encode($this->hubspotEntity), true),
+        $this->t('An error occurred while syncing from Hubspot to Drupal. The hubspot entity type is: @hubspot_entity_type and entity is: @hubspot_entity. The error was: @error', [
+            '@hubspot_entity_type' => $hubspot_entity['entity_type'],
+            '@hubspot_entity' => json_encode($hubspot_entity['entity']),
             '@error' => $e->getMessage(),
           ]
         ));

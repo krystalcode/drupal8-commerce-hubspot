@@ -2,8 +2,6 @@
 
 namespace Drupal\commerce_hubspot\Hubspot;
 
-use stdClass;
-
 /**
  * Interface for the SyncFromService class.
  *
@@ -18,16 +16,17 @@ interface SyncFromServiceInterface {
    *   The last time this fetch was run.
    *
    * @param array
-   *   An array of Hubspot contacts.
+   *   An array of Hubspot contacts keyed on the contact email.
    */
   public function fetchUpdatedContacts($last_fetch_time = NULL);
 
   /**
    * Syncs a Hubspot entity with the appropriate Drupal entity.
    *
-   * @param stdClass $hubspot_entity
-   *   The Hubspot entity (ie. contact/deal).
+   * @param array $hubspot_entity
+   *   The Hubspot entity (ie. contact/deal) details in an array.
+   *   Ie. ['entity_type' => 'contact', 'entity' => $entity].
    */
-  public function sync(stdClass $hubspot_entity);
+  public function sync(array $hubspot_entity);
 
 }
