@@ -54,6 +54,7 @@ function commerce_hubspot_help($route_name, RouteMatchInterface $route_match) {
  * Implements hook_entity_update().
  */
 function commerce_hubspot_entity_update(EntityInterface $entity) {
+  // Sync orders, products, and users when they're created/updated in Drupal.
   $entities_to_sync = [
     'commerce_order',
     'commerce_order_item',

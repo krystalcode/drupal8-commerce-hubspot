@@ -5,6 +5,12 @@
  * Hooks and functionality for the Commerce Hubspot Engagement module.
  */
 
+use Drupal\commerce_hubspot\Event\SyncEntityTypesEvent;
+
+use Drupal\Core\Entity\EntityInterface;
+use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Routing\RouteMatchInterface;
+
 /**
  * Implements hook_cron().
  */
@@ -23,6 +29,26 @@ function commerce_hubspot_engagement_cron() {
 
   // Finally save the last synced time in the state.
   \Drupal::state()->set('commerce_hubspot_engagement.last_synced_from_time', $current_time);
+}
+
+/**
+ * Implements hook_help().
+ */
+function commerce_hubspot_engagement_help($route_name, RouteMatchInterface $route_match) {
+  switch ($route_name) {
+    case 'help.page.commerce_hubspot_engagement':
+      $output = '';
+      $output .= '<h3>' . t('About') . '</h3>';
+      $output .= '<p>' . t(
+          'The Commerce Hubspot Engagement module integrates Hubspot
+        engagements with Drupal. It syncs data to and from the <a target="_blank" href=":hubspot_api">Hubspot API</a>
+        any time an order engagement is created or updated.', [
+            ':hubspot_api' => 'https://www.hubspot.com',
+          ]
+        ) . '</p>';
+
+      return $output;
+  }
 }
 
 /**

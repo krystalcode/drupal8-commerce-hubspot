@@ -14,8 +14,11 @@ class CommerceHubspotEngagementServiceProvider extends ServiceProviderBase imple
   public function alter(ContainerBuilder $container) {
     parent::alter($container);
 
-    $definition = $container->getDefinition('commerce_hubspot.sync_from');
-    $definition->setClass('Drupal\commerce_hubspot_engagement\Hubspot\SyncFromServiceEngagement');
+    $sync_from_definition = $container->getDefinition('commerce_hubspot.sync_from');
+    $sync_from_definition->setClass('Drupal\commerce_hubspot_engagement\Hubspot\SyncFromServiceEngagement');
+
+    $sync_to_definition = $container->getDefinition('commerce_hubspot.sync_to');
+    $sync_to_definition->setClass('Drupal\commerce_hubspot_engagement\Hubspot\SyncToServiceEngagement');
   }
 
 }
