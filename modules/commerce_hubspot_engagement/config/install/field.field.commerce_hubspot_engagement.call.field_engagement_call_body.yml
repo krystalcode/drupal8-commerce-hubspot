@@ -1,0 +1,20 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - commerce_hubspot_engagement.commerce_hubspot_engagement_type.call
+    - field.storage.commerce_hubspot_engagement.field_engagement_call_body
+  module:
+    - text
+id: commerce_hubspot_engagement.call.field_engagement_call_body
+field_name: field_engagement_call_body
+entity_type: commerce_hubspot_engagement
+bundle: call
+label: 'Engagement Call Body'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: text_long

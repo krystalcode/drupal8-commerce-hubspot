@@ -1,0 +1,65 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - commerce_hubspot_engagement.commerce_hubspot_engagement_type.task
+    - field.field.commerce_hubspot_engagement.task.field_engagement_task_body
+    - field.field.commerce_hubspot_engagement.task.field_engagement_task_reminders
+    - field.field.commerce_hubspot_engagement.task.field_engagement_task_status
+    - field.field.commerce_hubspot_engagement.task.field_engagement_task_subject
+    - field.field.commerce_hubspot_engagement.task.field_engagement_task_type
+  module:
+    - datetime
+    - file
+    - text
+id: commerce_hubspot_engagement.task.default
+targetEntityType: commerce_hubspot_engagement
+bundle: task
+mode: default
+content:
+  attachments:
+    type: file_generic
+    region: content
+    weight: 5
+    settings:
+      progress_indicator: throbber
+    third_party_settings: {  }
+  field_engagement_task_body:
+    weight: 0
+    settings:
+      rows: 5
+      placeholder: ''
+    third_party_settings: {  }
+    type: text_textarea
+    region: content
+  field_engagement_task_reminders:
+    weight: 4
+    settings: {  }
+    third_party_settings: {  }
+    type: datetime_default
+    region: content
+  field_engagement_task_status:
+    weight: 1
+    settings:
+      size: 60
+      placeholder: ''
+    third_party_settings: {  }
+    type: string_textfield
+    region: content
+  field_engagement_task_subject:
+    weight: 2
+    settings:
+      size: 60
+      placeholder: ''
+    third_party_settings: {  }
+    type: string_textfield
+    region: content
+  field_engagement_task_type:
+    weight: 3
+    settings:
+      size: 60
+      placeholder: ''
+    third_party_settings: {  }
+    type: string_textfield
+    region: content
+hidden: {  }

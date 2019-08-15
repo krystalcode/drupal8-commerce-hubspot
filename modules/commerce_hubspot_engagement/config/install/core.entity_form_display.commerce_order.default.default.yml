@@ -1,0 +1,194 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - commerce_order.commerce_order_type.default
+    - field.field.commerce_order.default.field_comments
+    - field.field.commerce_order.default.field_customer
+    - field.field.commerce_order.default.field_customer_comments
+    - field.field.commerce_order.default.field_engagements
+    - field.field.commerce_order.default.field_hubspot_remote_id
+    - field.field.commerce_order.default.field_inventory_location
+    - field.field.commerce_order.default.field_operation_status
+    - field.field.commerce_order.default.field_order_title
+    - field.field.commerce_order.default.field_payment_captured
+    - field.field.commerce_order.default.field_payment_error
+    - field.field.commerce_order.default.field_pick_ticket_notes
+    - field.field.commerce_order.default.field_priority
+    - field.field.commerce_order.default.field_purchase_order_number
+    - field.field.commerce_order.default.field_sales_order_type
+    - field.field.commerce_order.default.field_sales_slmn1_list
+    - field.field.commerce_order.default.field_sales_slmn2
+    - field.field.commerce_order.default.field_tax_code
+    - field.field.commerce_order.default.order_items
+    - field.field.commerce_order.default.shipments
+  module:
+    - commerce_order
+    - inline_entity_form
+_core:
+  default_config_hash: 1NKrIQBqELStd0cyiuHeNArhuPvOZj36faDEG1dWqEA
+id: commerce_order.default.default
+targetEntityType: commerce_order
+bundle: default
+mode: default
+content:
+  adjustments:
+    type: commerce_adjustment_default
+    weight: 3
+    settings: {  }
+    third_party_settings: {  }
+    region: content
+  billing_profile:
+    type: commerce_billing_profile
+    weight: 0
+    settings: {  }
+    third_party_settings: {  }
+    region: content
+  cart:
+    type: boolean_checkbox
+    settings:
+      display_label: true
+    weight: 5
+    region: content
+    third_party_settings: {  }
+  field_customer:
+    weight: 9
+    settings:
+      match_operator: CONTAINS
+      size: 60
+      placeholder: ''
+    third_party_settings: {  }
+    type: entity_reference_autocomplete
+    region: content
+  field_customer_comments:
+    weight: 6
+    settings:
+      rows: 5
+      placeholder: ''
+    third_party_settings: {  }
+    type: string_textarea
+    region: content
+  field_engagements:
+    weight: 19
+    settings:
+      match_operator: CONTAINS
+      size: 60
+      placeholder: ''
+    third_party_settings: {  }
+    type: entity_reference_autocomplete
+    region: content
+  field_inventory_location:
+    weight: 2
+    settings: {  }
+    third_party_settings: {  }
+    type: options_select
+    region: content
+  field_order_title:
+    weight: 8
+    settings:
+      size: 60
+      placeholder: ''
+    third_party_settings: {  }
+    type: string_textfield
+    region: content
+  field_payment_captured:
+    weight: 11
+    settings:
+      display_label: true
+    third_party_settings: {  }
+    type: boolean_checkbox
+    region: content
+  field_payment_error:
+    weight: 12
+    settings:
+      size: 60
+      placeholder: ''
+    third_party_settings: {  }
+    type: string_textfield
+    region: content
+  field_pick_ticket_notes:
+    weight: 18
+    settings:
+      rows: 5
+      placeholder: ''
+    third_party_settings: {  }
+    type: string_textarea
+    region: content
+  field_priority:
+    weight: 17
+    settings:
+      display_label: true
+    third_party_settings: {  }
+    type: boolean_checkbox
+    region: content
+  field_purchase_order_number:
+    weight: 7
+    settings:
+      size: 60
+      placeholder: ''
+    third_party_settings: {  }
+    type: string_textfield
+    region: content
+  field_sales_order_type:
+    weight: 16
+    settings: {  }
+    third_party_settings: {  }
+    type: options_select
+    region: content
+  field_sales_slmn1_list:
+    weight: 14
+    settings: {  }
+    third_party_settings: {  }
+    type: options_select
+    region: content
+  field_sales_slmn2:
+    weight: 15
+    settings:
+      size: 60
+      placeholder: ''
+    third_party_settings: {  }
+    type: string_textfield
+    region: content
+  field_tax_code:
+    weight: 13
+    settings:
+      size: 60
+      placeholder: ''
+    third_party_settings: {  }
+    type: string_textfield
+    region: content
+  order_items:
+    type: inline_entity_form_complex
+    weight: 1
+    settings:
+      override_labels: true
+      label_singular: 'order item'
+      label_plural: 'order items'
+      allow_new: true
+      match_operator: CONTAINS
+      allow_existing: false
+      form_mode: default
+      collapsible: false
+      collapsed: false
+      allow_duplicate: false
+    third_party_settings: {  }
+    region: content
+  primary_cart:
+    type: boolean_checkbox
+    settings:
+      display_label: true
+    weight: 4
+    region: content
+    third_party_settings: {  }
+hidden:
+  created: true
+  field_comments: true
+  field_hubspot_remote_id: true
+  field_operation_status: true
+  ip_address: true
+  mail: true
+  order_number: true
+  shipments: true
+  state: true
+  store_id: true
+  uid: true
