@@ -29,7 +29,7 @@ class EngagementListBuilder extends EntityListBuilder {
    */
   public function buildRow(EntityInterface $entity) {
     /** @var \Drupal\commerce_hubspot_engagement\Entity\Engagement $entity */
-    $row['label'] = $entity->getEntityType()->getLabel()->render() . ' ' . $entity->id();
+    $row['label'] = $entity->toLink($entity->getEntityType()->getLabel()->render() . ' ' . $entity->id());
     $row['bundle'] = $entity->bundle->entity->label();
     $row['author_link'] = $entity->getOwner()->toLink($entity->getOwner()->getAccountName());
     $row['order_link'] = $entity->getOrder()->toLink($entity->getOrderId());

@@ -29,9 +29,9 @@ use Drupal\user\UserInterface;
  *     "access" = "Drupal\Core\Entity\EntityAccessControlHandler",
  *     "views_data" = "Drupal\views\EntityViewsData",
  *     "form" = {
- *       "default" = "Drupal\Core\Entity\ContentEntityForm",
- *       "add" = "Drupal\Core\Entity\ContentEntityForm",
- *       "edit" = "Drupal\Core\Entity\ContentEntityForm",
+ *       "default" = "Drupal\commerce_hubspot_engagement\Form\EngagementForm",
+ *       "add" = "Drupal\commerce_hubspot_engagement\Form\EngagementForm",
+ *       "edit" = "Drupal\commerce_hubspot_engagement\Form\EngagementForm",
  *       "delete" = "Drupal\Core\Entity\ContentEntityDeleteForm",
  *     },
  *     "route_provider" = {
@@ -39,19 +39,26 @@ use Drupal\user\UserInterface;
  *     },
  *   },
  *   links = {
- *     "canonical" = "/admin/commerce/engagements/{commerce_hubspot_engagement}",
- *     "add-page" = "/admin/commerce/engagements/add",
- *     "add-form" = "/admin/commerce/engagements/add/{commerce_hubspot_engagement_type}",
- *     "edit-form" = "/admin/commerce/engagements/{commerce_hubspot_engagement}/edit",
- *     "delete-form" = "/admin/commerce/engagements/{commerce_hubspot_engagement}/delete",
- *     "delete-multiple-form" = "/admin/commerce/engagements/delete",
- *     "collection" = "/admin/commerce/engagements"
+ *     "canonical" = "/admin/commerce/orders/{commerce_order}/engagements/{commerce_hubspot_engagement}",
+ *     "collection" = "/admin/commerce/orders/{commerce_order}/engagements",
+ *     "add-form" = "/admin/commerce/orders/{commerce_order}/engagements/add/{commerce_hubspot_engagement_type}",
+ *     "edit-form" = "/admin/commerce/orders/{commerce_order}/engagements/{commerce_hubspot_engagement}/edit",
+ *     "delete-form" = "/admin/commerce/orders/{commerce_order}/engagements/{commerce_hubspot_engagement}/delete",
  *   },
  *   bundle_entity_type = "commerce_hubspot_engagement_type",
  *   field_ui_base_route = "entity.commerce_hubspot_engagement_type.edit_form",
  * )
  */
 class Engagement extends ContentEntityBase implements EngagementInterface {
+
+  /**
+   * {@inheritdoc}
+   */
+  protected function urlRouteParameters($rel) {
+    $uri_route_parameters = parent::urlRouteParameters($rel);
+    $uri_route_parameters['commerce_order'] = $this->getOrderId();
+    return $uri_route_parameters;
+  }
 
   /**
    * {@inheritdoc}

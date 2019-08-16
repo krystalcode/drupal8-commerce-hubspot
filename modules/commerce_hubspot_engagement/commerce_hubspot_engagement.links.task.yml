@@ -1,14 +1,9 @@
-commerce_hubspot_engagement_entity_view:
-  route_name: entity.commerce_hubspot_engagement.canonical
-  base_route: entity.commerce_hubspot_engagement.canonical
-  title: 'View'
+entity.commerce_hubspot_engagement_type.edit_form:
+  route_name: entity.commerce_hubspot_engagement_type.edit_form
+  base_route: entity.commerce_hubspot_engagement_type.edit_form
+  title: Edit
 
-commerce_hubspot_engagement_entity_edit:
-  route_name: entity.commerce_hubspot_engagement.edit_form
-  base_route: entity.commerce_hubspot_engagement.canonical
-  title: 'Edit'
-
-commerce_hubspot_engagement_entity_delete:
-  route_name:  entity.commerce_hubspot_engagement.delete_form
-  base_route:  entity.commerce_hubspot_engagement.canonical
-  title: 'Delete'
+entity.commerce_hubspot_engagement.collection:
+  route_name: entity.commerce_hubspot_engagement.collection
+  base_route: entity.commerce_order.canonical
+  title: Engagements

@@ -1,11 +1,5 @@
-commerce_hubspot_engagement_entity_collection_menu:
-  title: 'Engagements'
-  route_name: entity.commerce_hubspot_engagement.collection
-  description: 'List of Engagement entities'
-  parent: commerce.admin_commerce
-
-commerce_hubspot_engagement_type_entity_collection_menu:
+entity.commerce_hubspot_engagement_type:
   title: 'Engagement Types'
   route_name: entity.commerce_hubspot_engagement_type.collection
-  description: 'List of Engagement type entities'
+  description: 'Manage your engagement types'
   parent: commerce.configuration

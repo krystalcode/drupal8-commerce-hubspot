@@ -1,0 +1,12 @@
+entity.commerce_hubspot_engagement.add:
+  path: '/admin/commerce/orders/{commerce_order}/engagements/add'
+  defaults:
+    _title: 'Add engagement'
+    _controller: '\Drupal\commerce_hubspot_engagement\Controller\EngagementController::addPage'
+  options:
+    parameters:
+      commerce_order:
+        type: entity:commerce_order
+  requirements:
+    _entity_create_access: 'commerce_hubspot_engagement'
+
