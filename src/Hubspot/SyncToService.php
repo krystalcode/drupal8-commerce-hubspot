@@ -97,8 +97,15 @@ class SyncToService implements SyncToServiceInterface {
    *
    * @return mixed
    *   The remote ID.
+   *
+   * @throws \Drupal\Component\Plugin\Exception\InvalidPluginDefinitionException
+   * @throws \Drupal\Component\Plugin\Exception\PluginNotFoundException
    */
   public function sync(EntityInterface $entity) {
+    // Reset the entity cache as we might have an outdated entity.
+    $this
+      ->entityTypeManager
+      ->getStorage($entity->getEntityTypeId())->resetCache([$entity->id()]);
     $this->entity = $entity;
 
     // Dispatch an event to allow modules to tell us which Hubspot entity and ID

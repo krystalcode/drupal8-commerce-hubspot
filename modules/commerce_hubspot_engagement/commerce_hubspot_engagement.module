@@ -22,10 +22,10 @@ function commerce_hubspot_engagement_cron() {
   $last_synced = !empty($last_synced) ? $last_synced * 1000 : $last_synced;
 
   // Sync owners.
-  _commerce_hubspot_engagement_sync_owners($last_synced);
+  commerce_hubspot_engagement_sync_owners($last_synced);
 
   // Sync engagements.
-  _commerce_hubspot_engagement_sync_engagements($last_synced);
+  commerce_hubspot_engagement_sync_engagements($last_synced);
 
   // Finally save the last synced time in the state.
   \Drupal::state()->set('commerce_hubspot_engagement.last_synced_from_time', $current_time);
@@ -57,7 +57,7 @@ function commerce_hubspot_engagement_help($route_name, RouteMatchInterface $rout
  * @param int $last_synced
  *   The timestamp of when we last synced with Hubspot.
  */
-function _commerce_hubspot_engagement_sync_owners($last_synced) {
+function commerce_hubspot_engagement_sync_owners($last_synced) {
   $service = \Drupal::service('commerce_hubspot.sync_from');
   // Fetch owners on Hubspot that have been updated since our last sync.
   $updated_owners = $service->fetchUpdatedOwners($last_synced);
@@ -81,7 +81,7 @@ function _commerce_hubspot_engagement_sync_owners($last_synced) {
  * @param int $last_synced
  *   The timestamp of when we last synced with Hubspot.
  */
-function _commerce_hubspot_engagement_sync_engagements($last_synced) {
+function commerce_hubspot_engagement_sync_engagements($last_synced) {
   $service = \Drupal::service('commerce_hubspot.sync_from');
   // Fetch engagements on Hubspot that have been updated since our last sync.
   $updated_engagements = $service->fetchUpdatedEngagements($last_synced);
