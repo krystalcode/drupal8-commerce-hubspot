@@ -225,7 +225,6 @@ class SyncToService implements SyncToServiceInterface {
   protected function syncDeal(array $hubspot_payload) {
     try {
       $bridge = new EcommerceBridge($this->client);
-
       $response = $bridge->sendSyncMessages('DEAL', $hubspot_payload);
 
       // If we were successful, return the remote ID.
@@ -259,7 +258,6 @@ class SyncToService implements SyncToServiceInterface {
   protected function syncProduct(array $hubspot_payload) {
     try {
       $bridge = new EcommerceBridge($this->client);
-
       $response = $bridge->sendSyncMessages('PRODUCT', $hubspot_payload);
 
       // If we were successful, return the remote ID.
@@ -293,7 +291,6 @@ class SyncToService implements SyncToServiceInterface {
   protected function syncLineItem(array $hubspot_payload) {
     try {
       $bridge = new EcommerceBridge($this->client);
-
       $response = $bridge->sendSyncMessages('LINE_ITEM', $hubspot_payload);
 
       // If we were successful, return the remote ID.

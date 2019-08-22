@@ -3,9 +3,13 @@
 namespace Drupal\commerce_hubspot_engagement\Entity;
 
 use Drupal\Core\Entity\ContentEntityBase;
+use Drupal\Core\Entity\EntityMalformedException;
+use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\Core\Entity\EntityTypeInterface;
 use Drupal\Core\Field\BaseFieldDefinition;
+use Drupal\Core\Field\FieldStorageDefinitionInterface;
 use Drupal\user\UserInterface;
+use function sprintf;
 
 /**
  * Defines the Commerce Hubspot Engagement entity.
@@ -57,6 +61,7 @@ class Engagement extends ContentEntityBase implements EngagementInterface {
   protected function urlRouteParameters($rel) {
     $uri_route_parameters = parent::urlRouteParameters($rel);
     $uri_route_parameters['commerce_order'] = $this->getOrderId();
+
     return $uri_route_parameters;
   }
 
@@ -159,6 +164,19 @@ class Engagement extends ContentEntityBase implements EngagementInterface {
   }
 
   /**
+   * {@inheritdoc}
+   */
+  public function preSave(EntityStorageInterface $storage) {
+    parent::preSave($storage);
+
+    if ($this->get('order_id')->isEmpty()) {
+      throw new EntityMalformedException(sprintf(
+        'Required engagement field "%s" is empty.', 'order_id'
+      ));
+    }
+  }
+
+  /**
    * Determines the schema for the base_table property defined above.
    */
   public static function baseFieldDefinitions(EntityTypeInterface $entity_type) {
@@ -195,6 +213,61 @@ class Engagement extends ContentEntityBase implements EngagementInterface {
       ->setLabel(t('Hubspot Last Modified Date'))
       ->setDescription(t('The timestamp of when the engagement was last modified on Hubspot.'));
 
+    // The order backreference, populated by the postSave() function.
+    $fields['order_id'] = BaseFieldDefinition::create('entity_reference')
+      ->setLabel(t('Order'))
+      ->setDescription(t('The parent order.'))
+      ->setSetting('target_type', 'commerce_order')
+      ->setRequired(TRUE)
+      ->setReadOnly(TRUE);
+
+    // The order backreference, populated by the postSave() function.
+    $fields['associated_orders'] = BaseFieldDefinition::create('entity_reference')
+      ->setLabel(t('Associated Orders'))
+      ->setDescription(t('The order IDs this engagement is associated with.'))
+      ->setSetting('target_type', 'commerce_order')
+      ->setCardinality(FieldStorageDefinitionInterface::CARDINALITY_UNLIMITED)
+      ->setDisplayOptions('view', array(
+        'label' => 'above',
+        'type' => 'entity_reference_label',
+        'weight' => 5,
+      ))
+      ->setDisplayOptions('form', [
+        'type' => 'entity_reference_autocomplete',
+        'weight' => 5,
+        'settings' => [
+          'match_operator' => 'CONTAINS',
+          'size' => '60',
+          'placeholder' => '',
+        ],
+      ])
+      ->setDisplayConfigurable('form', TRUE)
+      ->setDisplayConfigurable('view', TRUE);
+
+    // The contacts this engagement is associated with.
+    $fields['associated_contacts'] = BaseFieldDefinition::create('entity_reference')
+      ->setLabel(t('Associated Contacts'))
+      ->setDescription(t('The contact IDs this engagement is associated with.'))
+      ->setTranslatable(TRUE)
+      ->setSetting('target_type', 'user')
+      ->setCardinality(FieldStorageDefinitionInterface::CARDINALITY_UNLIMITED)
+      ->setDisplayOptions('view', array(
+        'label' => 'above',
+        'type' => 'entity_reference_label',
+        'weight' => 6,
+      ))
+      ->setDisplayOptions('form', [
+        'type' => 'entity_reference_autocomplete',
+        'weight' => 6,
+        'settings' => [
+          'match_operator' => 'CONTAINS',
+          'size' => '60',
+          'placeholder' => '',
+        ],
+      ])
+      ->setDisplayConfigurable('form', TRUE)
+      ->setDisplayConfigurable('view', TRUE);
+
     // File attachments uploaded for this engagement.
     $fields['attachments'] = BaseFieldDefinition::create('file')
       ->setLabel(t('File Attachments'))
@@ -204,6 +277,7 @@ class Engagement extends ContentEntityBase implements EngagementInterface {
         'file_directory' => 'engagements',
         'file_extensions' => 'txt pdf doc docx xls xlsx ppt pptx gif png jpg jpeg',
       ])
+      ->setCardinality(FieldStorageDefinitionInterface::CARDINALITY_UNLIMITED)
       ->setDisplayOptions('view', array(
         'label' => 'above',
         'type' => 'file_default',
@@ -211,17 +285,10 @@ class Engagement extends ContentEntityBase implements EngagementInterface {
       ))
       ->setDisplayOptions('form', array(
         'type' => 'file_generic',
+        'weight' => 10,
       ))
       ->setDisplayConfigurable('form', TRUE)
       ->setDisplayConfigurable('view', TRUE);
-
-    // The order backreference, populated by the postSave() function.
-    $fields['order_id'] = BaseFieldDefinition::create('entity_reference')
-      ->setLabel(t('Order'))
-      ->setDescription(t('The parent order.'))
-      ->setSetting('target_type', 'commerce_order')
-      ->setRequired(TRUE)
-      ->setReadOnly(TRUE);
 
     return $fields;
   }
