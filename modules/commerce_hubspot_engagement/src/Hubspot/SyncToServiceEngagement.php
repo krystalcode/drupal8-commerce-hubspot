@@ -33,6 +33,7 @@ class SyncToServiceEngagement extends SyncToService implements SyncToServiceInte
     // payload prepare.
     else {
       if ($this->entity->getEntityTypeId() === 'user'
+        && $this->entity->hasField('field_is_hubspot_owner')
         && $this->entity->get('field_is_hubspot_owner')->value
       ) {
         return $field_mapping;
@@ -47,7 +48,8 @@ class SyncToServiceEngagement extends SyncToService implements SyncToServiceInte
    */
   protected function syncContact(array $hubspot_payload) {
     // Sync Hubspot owner users.
-    if ($this->entity->get('field_is_hubspot_owner')->value) {
+    if ($this->entity->hasField('field_is_hubspot_owner')
+      && $this->entity->get('field_is_hubspot_owner')->value) {
       return $this->syncOwner($hubspot_payload);
     }
 

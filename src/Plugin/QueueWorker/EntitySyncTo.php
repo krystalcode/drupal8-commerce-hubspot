@@ -91,6 +91,10 @@ class EntitySyncTo extends QueueWorkerBase implements ContainerFactoryPluginInte
       ->getStorage($data['entity_type'])
       ->load($data['entity_id']);
 
+    if (!$entity) {
+      return;
+    }
+
     $remote_id = $this->syncTo->sync($entity);
 
     if (!$remote_id) {
