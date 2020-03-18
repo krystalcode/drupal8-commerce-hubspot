@@ -1,0 +1,61 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - commerce_hubspot_engagement.commerce_hubspot_engagement_type.meeting
+    - field.field.commerce_hubspot_engagement.meeting.field_engagement_meeting_body
+    - field.field.commerce_hubspot_engagement.meeting.field_engagement_meeting_end_tim
+    - field.field.commerce_hubspot_engagement.meeting.field_engagement_meeting_reminde
+    - field.field.commerce_hubspot_engagement.meeting.field_engagement_meeting_start_t
+    - field.field.commerce_hubspot_engagement.meeting.field_engagement_meeting_title
+  module:
+    - datetime
+    - file
+    - text
+id: commerce_hubspot_engagement.meeting.default
+targetEntityType: commerce_hubspot_engagement
+bundle: meeting
+mode: default
+content:
+  attachments:
+    type: file_generic
+    region: content
+    weight: 5
+    settings:
+      progress_indicator: throbber
+    third_party_settings: {  }
+  field_engagement_meeting_body:
+    weight: 1
+    settings:
+      rows: 5
+      placeholder: ''
+    third_party_settings: {  }
+    type: text_textarea
+    region: content
+  field_engagement_meeting_end_tim:
+    weight: 3
+    settings: {  }
+    third_party_settings: {  }
+    type: datetime_default
+    region: content
+  field_engagement_meeting_reminde:
+    weight: 4
+    settings: {  }
+    third_party_settings: {  }
+    type: datetime_default
+    region: content
+  field_engagement_meeting_start_t:
+    weight: 2
+    settings: {  }
+    third_party_settings: {  }
+    type: datetime_default
+    region: content
+  field_engagement_meeting_title:
+    weight: 0
+    settings:
+      size: 60
+      placeholder: ''
+    third_party_settings: {  }
+    type: string_textfield
+    region: content
+hidden: {  }
