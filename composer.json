@@ -1,0 +1,10 @@
+{
+  "name": "drupal/commerce_hubspot",
+  "type": "drupal-module",
+  "description": "Integrates Drupal Commerce with Hubspot",
+  "license": "GPL-2.0+",
+  "minimum-stability": "dev",
+  "require": {
+    "drupal/hubspot_api" : "^1.0"
+  }
+}
