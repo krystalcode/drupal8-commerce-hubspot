@@ -6,8 +6,10 @@
  */
 
 use Drupal\commerce_hubspot\Event\SyncEntityTypesEvent;
+
 use Drupal\Core\Routing\RouteMatchInterface;
 use Drupal\Core\Entity\EntityInterface;
+use Drupal\Core\Form\FormStateInterface;
 
 const COMMERCE_HUBSPOT_LOGGER_CHANNEL = 'commerce_hubspot';
 
@@ -36,9 +38,9 @@ function commerce_hubspot_help($route_name, RouteMatchInterface $route_match) {
  */
 function commerce_hubspot_entity_update(EntityInterface $entity) {
   $entities_to_sync = [
-    'order',
-    'order_item',
-    'product_variation',
+    'commerce_order',
+    'commerce_order_item',
+    'commerce_product_variation',
     'profile',
     'user'
   ];
@@ -47,15 +49,69 @@ function commerce_hubspot_entity_update(EntityInterface $entity) {
   $event = new SyncEntityTypesEvent($entity, $entities_to_sync);
   $event_dispatcher = \Drupal::service('event_dispatcher');
   $event_dispatcher->dispatch(SyncEntityTypesEvent::EVENT_NAME, $event);
+  $entities_to_sync = $event->getEntitiesToSync();
 
-  if (!in_array($entity->getEntityType()->id(), $entities_to_sync)) {
+  $entity_type_id = $entity->getEntityTypeId();
+  if (!in_array($entity_type_id, $entities_to_sync)) {
     return;
   }
-
+  
   $queue_factory = \Drupal::service('queue');
   $queue = $queue_factory->get('commerce_hubspot_entity_sync_to');
   $queue->createItem([
-    'entity_type' => $entity->getEntityType()->id(),
+    'entity_type' => $entity_type_id,
     'entity_id' => $entity->id(),
   ]);
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ */
+function commerce_hubspot_form_hubspot_api_settings_alter(&$form, FormStateInterface $form_state, $form_id) {
+  // Add a checkbox to allow the user to select to install and enable the
+  // eCommerce bridge for Hubspot.
+  $config = \Drupal::service('config.factory')->get('hubspot_api.settings');
+  $form['install_bridge'] = [
+    '#type' => 'checkbox',
+    '#title' => t('Install eCommerce Bridge'),
+    '#description' => t('Install and enable the eCommerce Bridge on Hubspot.<br>
+      <strong>Warning:</strong> Enable ONLY when the property mappings have been completely defined as it will override any current mappings that exist on Hubspot.<br>
+      <strong>Warning:</strong> Unchecking this box after installation will uninstall and delete the eCommerce bridge settings.'),
+    '#default_value' => $config->get('install_bridge'),
+  ];
+
+  // Add a custom submit to install the eCommerce bridge.
+  $form['#submit'][] = 'commerce_hubspot_api_settings_form_submit';
+}
+
+/**
+ * Install the Hubspot eCommerce bridge if it hasn't been already.
+ *
+ * @param array $form
+ *   The form array.
+ * @param \Drupal\Core\Form\FormStateInterface $form_state
+ *   The form state interface.
+ */
+function commerce_hubspot_api_settings_form_submit(array &$form, FormStateInterface $form_state) {
+  // If the bridge was previously installed, and the checkbox is unchecked now
+  // uninstall the bridge.
+  $config = \Drupal::service('config.factory')->getEditable('hubspot_api.settings');
+
+  if (!$config->get('access_key')) {
+    return;
+  }
+
+  $install_bridge = $form_state->getValue('install_bridge');
+  if (!$install_bridge && $config->get('install_bridge')) {
+    \Drupal::service('commerce_hubspot.ecommerce_bridge')->uninstallBridge();
+  }
+  // If the user opted to install the bridge, install it.
+  else {
+    \Drupal::service('commerce_hubspot.ecommerce_bridge')->installBridge();
+  }
+
+  // Save the config.
+  $config
+    ->set('install_bridge', $install_bridge)
+    ->save();
 }

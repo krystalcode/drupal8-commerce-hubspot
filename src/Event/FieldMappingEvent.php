@@ -26,18 +26,20 @@ class FieldMappingEvent extends Event {
   protected $entity;
 
   /**
-   * An array telling us which Drupal fields should map to which Hubspot fields.
+   * An array with the Drupal and Hubspot fields and their sync values.
    *
    * The array key is the Drupal field name while the id is the hubspot field
    * name.
    *
    * @var array
    *   IE. return [
-   *     'field_first_name' => [
+   *     'properties' => [
+   *       'field_first_name' => [
    *       'type' => 'string',
    *       'id' => 'first_name',
    *       'status' => TRUE,
    *       'value' => $entity->get('field_first_name')->getValue()[0]['value'],
+   *       ],
    *     ],
    *   ];
    */
