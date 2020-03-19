@@ -3,6 +3,7 @@
 namespace Drupal\commerce_hubspot\Hubspot;
 
 use Drupal\commerce_hubspot\Event\EntityMappingEvent;
+use Drupal\commerce_hubspot\Event\FieldMappingEvent;
 use Drupal\hubspot_api\Manager;
 
 use Drupal\Core\Entity\EntityInterface;
@@ -90,6 +91,16 @@ class SyncToService implements SyncToServiceInterface {
     $this->eventDispatcher->dispatch(EntityMappingEvent::EVENT_NAME, $event);
 
     if (empty($entity_mapping['type'])) {
+      return;
+    }
+
+    // Now, dispatch another event to allow modules to define which Drupal
+    // fields will be synced to which HubSpot fields for this entity.
+    $field_mapping = [];
+    $event = new FieldMappingEvent($entity, $field_mapping);
+    $this->eventDispatcher->dispatch(FieldMappingEvent::EVENT_NAME, $event);
+
+    if (empty($field_mapping)) {
       return;
     }
   }
