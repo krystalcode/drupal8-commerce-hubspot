@@ -24,19 +24,37 @@ class SyncFromEntityUpdateEvent extends Event {
   protected $hubspotEntity;
 
   /**
+   * The Hubspot entity type that was updated.
+   *
+   * @var array
+   */
+  protected $hubspotEntityType;
+
+  /**
    * Constructs the SyncFromEntityUpdateEvent object.
    *
-   * @param object $hubspot_entity
+   * @param array $hubspot_entity
    *   The Hubspot entity that was updated.
    */
-  public function __construct(stdClass $hubspot_entity) {
-    $this->hubspotEntity = $hubspot_entity;
+  public function __construct(array $hubspot_entity) {
+    $this->hubspotEntityType = $hubspot_entity['entity_type'];
+    $this->hubspotEntity = $hubspot_entity['entity'];
+  }
+
+  /**
+   * Gets the Hubspot entity type.
+   *
+   * @return string
+   *   The Hubspot entity type.
+   */
+  public function getHubspotEntityType() {
+    return $this->hubspotEntityType;
   }
 
   /**
    * Gets the Hubspot entity.
    *
-   * @return stdClass
+   * @return array|stdClass
    *   The Hubspot entity.
    */
   public function getHubspotEntity() {

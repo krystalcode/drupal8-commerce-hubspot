@@ -1,0 +1,5 @@
+entity.commerce_hubspot_engagement_type:
+  title: 'Engagement Types'
+  route_name: entity.commerce_hubspot_engagement_type.collection
+  description: 'Manage your engagement types'
+  parent: commerce.configuration

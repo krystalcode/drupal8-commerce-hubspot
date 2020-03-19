@@ -1,0 +1,22 @@
+langcode: en
+status: true
+dependencies:
+  module:
+    - commerce_hubspot_engagement
+    - field_permissions
+    - telephone
+third_party_settings:
+  field_permissions:
+    permission_type: public
+id: commerce_hubspot_engagement.field_engagement_call_to_number
+field_name: field_engagement_call_to_number
+entity_type: commerce_hubspot_engagement
+type: telephone
+settings: {  }
+module: telephone
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

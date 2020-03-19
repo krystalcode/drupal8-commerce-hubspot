@@ -1,0 +1,35 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - commerce_hubspot_engagement.commerce_hubspot_engagement_type.call
+    - commerce_hubspot_engagement.commerce_hubspot_engagement_type.email
+    - commerce_hubspot_engagement.commerce_hubspot_engagement_type.meeting
+    - commerce_hubspot_engagement.commerce_hubspot_engagement_type.note
+    - commerce_hubspot_engagement.commerce_hubspot_engagement_type.task
+    - commerce_order.commerce_order_type.default
+    - field.storage.commerce_order.field_engagements
+id: commerce_order.default.field_engagements
+field_name: field_engagements
+entity_type: commerce_order
+bundle: default
+label: Engagements
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  handler: 'default:commerce_hubspot_engagement'
+  handler_settings:
+    target_bundles:
+      call: call
+      email: email
+      meeting: meeting
+      note: note
+      task: task
+    sort:
+      field: _none
+    auto_create: false
+    auto_create_bundle: call
+field_type: entity_reference

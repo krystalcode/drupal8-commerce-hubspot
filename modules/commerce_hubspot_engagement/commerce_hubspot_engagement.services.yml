@@ -1,0 +1,7 @@
+services:
+  commerce_hubspot_engagement.entity_types_subscriber:
+    class: Drupal\commerce_hubspot_engagement\EventSubscriber\EntityTypesSubscriber
+    arguments:
+      - '@entity_type.manager'
+    tags:
+      - { name: event_subscriber }

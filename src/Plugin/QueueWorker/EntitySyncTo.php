@@ -80,10 +80,20 @@ class EntitySyncTo extends QueueWorkerBase implements ContainerFactoryPluginInte
    * {@inheritdoc}
    */
   public function processItem($data) {
+    // Reset the entity cache so we get all new data.
+    $this
+      ->entityTypeManager
+      ->getStorage($data['entity_type'])
+      ->resetCache([$data['entity_id']]);
+
     $entity = $this
       ->entityTypeManager
       ->getStorage($data['entity_type'])
       ->load($data['entity_id']);
+
+    if (!$entity) {
+      return;
+    }
 
     $remote_id = $this->syncTo->sync($entity);
 

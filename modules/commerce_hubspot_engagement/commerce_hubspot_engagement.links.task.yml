@@ -1,0 +1,9 @@
+entity.commerce_hubspot_engagement_type.edit_form:
+  route_name: entity.commerce_hubspot_engagement_type.edit_form
+  base_route: entity.commerce_hubspot_engagement_type.edit_form
+  title: Edit
+
+entity.commerce_hubspot_engagement.collection:
+  route_name: entity.commerce_hubspot_engagement.collection
+  base_route: entity.commerce_order.canonical
+  title: Engagements

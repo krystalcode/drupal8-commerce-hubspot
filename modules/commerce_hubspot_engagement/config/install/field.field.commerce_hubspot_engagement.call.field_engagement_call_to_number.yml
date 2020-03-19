@@ -1,0 +1,20 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - commerce_hubspot_engagement.commerce_hubspot_engagement_type.call
+    - field.storage.commerce_hubspot_engagement.field_engagement_call_to_number
+  module:
+    - telephone
+id: commerce_hubspot_engagement.call.field_engagement_call_to_number
+field_name: field_engagement_call_to_number
+entity_type: commerce_hubspot_engagement
+bundle: call
+label: 'Engagement Call To Number'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: telephone

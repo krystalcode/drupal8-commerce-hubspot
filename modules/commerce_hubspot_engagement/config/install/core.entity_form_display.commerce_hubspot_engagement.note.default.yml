@@ -1,0 +1,30 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - commerce_hubspot_engagement.commerce_hubspot_engagement_type.note
+    - field.field.commerce_hubspot_engagement.note.field_engagement_note_body
+  module:
+    - file
+    - text
+id: commerce_hubspot_engagement.note.default
+targetEntityType: commerce_hubspot_engagement
+bundle: note
+mode: default
+content:
+  attachments:
+    type: file_generic
+    region: content
+    weight: 1
+    settings:
+      progress_indicator: throbber
+    third_party_settings: {  }
+  field_engagement_note_body:
+    type: text_textarea
+    weight: 0
+    region: content
+    settings:
+      rows: 5
+      placeholder: ''
+    third_party_settings: {  }
+hidden: {  }

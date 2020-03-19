@@ -23,20 +23,8 @@ function commerce_hubspot_cron() {
   $last_synced = \Drupal::state()->get('commerce_hubspot.last_synced_from_time');
   $last_synced = !empty($last_synced) ? $last_synced * 1000 : $last_synced;
 
-  // TODO: Allow syncing of other entities.
-
-  // Fetch contacts on Hubspot that have been updated since our last sync.
-  $service = \Drupal::service('commerce_hubspot.sync_from');
-  $updated_contacts = $service->fetchUpdatedContacts($last_synced);
-
-  if (!$updated_contacts) {
-    return;
-  }
-
-  // Go through each Hubspot contact and sync it.
-  foreach ($updated_contacts as $email => $contact) {
-    $service->sync($contact);
-  }
+  // Sync contacts.
+  commerce_hubspot_sync_contacts($last_synced);
 
   // Finally save the last synced time in the state.
   \Drupal::state()->set('commerce_hubspot.last_synced_from_time', $current_time);
@@ -63,9 +51,52 @@ function commerce_hubspot_help($route_name, RouteMatchInterface $route_match) {
 }
 
 /**
+ * Implements hook_entity_insert().
+ */
+function commerce_hubspot_entity_insert(EntityInterface $entity) {
+  // Sync orders, products, and users when they're added in Drupal.
+  $entities_to_sync = [
+    'commerce_order',
+    'commerce_order_item',
+    'commerce_product_variation',
+    'profile',
+    'user'
+  ];
+
+  // Dispatch our sync entity types event.
+  $event = new SyncEntityTypesEvent($entity, $entities_to_sync);
+  $event_dispatcher = \Drupal::service('event_dispatcher');
+  $event_dispatcher->dispatch(SyncEntityTypesEvent::EVENT_NAME, $event);
+  $entities_to_sync = $event->getEntitiesToSync();
+
+  $entity_type_id = $entity->getEntityTypeId();
+  if (!in_array($entity_type_id, $entities_to_sync)) {
+    return;
+  }
+
+  // If the hubspot_lastmodifieddate of the original entity is different than
+  // that of the updated entity then we're doing a HubSpot to Drupal sync; do
+  // not dispatch the event that updates the entity on HubSpot so that we don't
+  // get stuck in a loop.
+  $original_entity = \Drupal::entityTypeManager()->getStorage($entity_type_id)->loadUnchanged($entity->id());
+  if ($entity->hasField('hubspot_lastmodifieddate')
+    && $entity->get('hubspot_lastmodifieddate')->value != $original_entity->get('hubspot_lastmodifieddate')->value) {
+    return;
+  }
+
+  $queue_factory = \Drupal::service('queue');
+  $queue = $queue_factory->get('commerce_hubspot_entity_sync_to');
+  $queue->createItem([
+    'entity_type' => $entity_type_id,
+    'entity_id' => $entity->id(),
+  ]);
+}
+
+/**
  * Implements hook_entity_update().
  */
 function commerce_hubspot_entity_update(EntityInterface $entity) {
+  // Sync orders, products, and users when they're updated in Drupal.
   $entities_to_sync = [
     'commerce_order',
     'commerce_order_item',
@@ -153,4 +184,28 @@ function commerce_hubspot_api_settings_form_submit(array &$form, FormStateInterf
   $config
     ->set('install_bridge', $install_bridge)
     ->save();
+}
+
+/**
+ * Sync Hubspot contacts.
+ *
+ * @param int $last_synced
+ *   The timestamp of when we last synced with Hubspot.
+ */
+function commerce_hubspot_sync_contacts($last_synced) {
+  // Fetch contacts on Hubspot that have been updated since our last sync.
+  $service = \Drupal::service('commerce_hubspot.sync_from');
+  $updated_contacts = $service->fetchUpdatedContacts($last_synced);
+
+  if (!$updated_contacts) {
+    return;
+  }
+
+  // Go through each Hubspot contact and sync it.
+  foreach ($updated_contacts as $email => $contact) {
+    $service->sync([
+      'entity_type' => 'contact',
+      'entity' => $contact,
+    ]);
+  }
 }
