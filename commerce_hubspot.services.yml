@@ -22,3 +22,12 @@ services:
       - '@logger.factory'
       - '@messenger'
       - '@event_dispatcher'
+
+  commerce_hubspot.commands:
+    class: \Drupal\commerce_hubspot\Commands\HubspotCommerceCommands
+    arguments:
+      - '@entity_type.manager'
+      - '@commerce_hubspot.sync_to'
+      - '@commerce_hubspot.ecommerce_bridge'
+    tags:
+      - { name: drush.command }
