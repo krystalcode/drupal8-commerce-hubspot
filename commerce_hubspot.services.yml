@@ -1,0 +1,7 @@
+services:
+  commerce_hubspot.sync_to:
+    class: Drupal\commerce_hubspot\Hubspot\SyncToService
+    arguments:
+      - '@hubspot_api.manager'
+      - '@entity_type.manager'
+      - '@logger.factory'
