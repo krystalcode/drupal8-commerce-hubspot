@@ -1,0 +1,21 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.user.hubspot_lastmodifieddate
+  module:
+    - user
+id: user.user.hubspot_lastmodifieddate
+field_name: hubspot_lastmodifieddate
+entity_type: user
+bundle: user
+label: hubspot_lastmodifieddate
+description: ''
+required: false
+translatable: false
+default_value:
+  -
+    value: 1558695400
+default_value_callback: ''
+settings: {  }
+field_type: timestamp
