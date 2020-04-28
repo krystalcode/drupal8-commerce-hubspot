@@ -251,11 +251,6 @@ class EcommerceBridgeService implements ECommerceBridgeServiceInterface {
           'targetHubspotProperty' => 'dealstage',
         ],
         [
-          'propertyName' => 'commerce_order.type',
-          'dataType' => 'STRING',
-          'targetHubspotProperty' => 'dealtype',
-        ],
-        [
           'propertyName' => 'commerce_order.name',
           'dataType' => 'STRING',
           'targetHubspotProperty' => 'dealname',
